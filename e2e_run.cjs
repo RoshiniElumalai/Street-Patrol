@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Support BASE_URL from env — local uses HTTPS, CI uses HTTP after build+serve
-const BASE_URL = process.env.BASE_URL || ${BASE_URL}';
+const BASE_URL = process.env.BASE_URL || 'https://localhost:5173';
 const IS_CI = process.env.CI === 'true';
 
 async function runAllTests() {
@@ -50,7 +50,7 @@ async function runAllTests() {
     // --- STEP 1: Load Splash Page ---
     console.log("Navigating to Splash Page...");
     await verifyStep('splash_load', (async () => {
-      await driver.get(${BASE_URL}/');
+      await driver.get(`${BASE_URL}/`);
       await driver.wait(until.elementLocated(By.tagName('body')), 8000);
       const title = await driver.getTitle();
       if (title !== 'street-patrol') throw new Error(`Unexpected page title: ${title}`);
@@ -59,7 +59,7 @@ async function runAllTests() {
     // --- STEP 2: Navigate to Role Selection ---
     console.log("Navigating to Role Selection Page...");
     await verifyStep('role_selection_load', (async () => {
-      await driver.get(${BASE_URL}/role-selection');
+      await driver.get(`${BASE_URL}/role-selection`);
       await driver.sleep(1500); // Wait for transition animations
       const citizenRole = await driver.findElements(By.xpath("//*[contains(text(), 'Citizen') or contains(text(), 'CITIZEN')]"));
       if (citizenRole.length === 0) throw new Error("Citizen role option not found on page.");
@@ -68,7 +68,7 @@ async function runAllTests() {
     // --- STEP 3: Load Login Page ---
     console.log("Navigating to Login Page...");
     await verifyStep('login_page_load', (async () => {
-      await driver.get(${BASE_URL}/login?role=citizen');
+      await driver.get(`${BASE_URL}/login?role=citizen`);
       await driver.wait(until.elementLocated(By.css('input[type="email"]')), 5000);
       await driver.wait(until.elementLocated(By.css('input[type="password"]')), 5000);
     })());
@@ -116,7 +116,7 @@ async function runAllTests() {
     // --- STEP 7: Navigate to Contacts Page ---
     console.log("Navigating to Contacts Page...");
     await verifyStep('contacts_page_load', (async () => {
-      await driver.get(${BASE_URL}/citizen/contacts');
+      await driver.get(`${BASE_URL}/citizen/contacts`);
       await driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Guardian Circle') or contains(text(), 'Contacts')]")), 8000);
     })());
 
@@ -163,7 +163,7 @@ async function runAllTests() {
     // --- STEP 10: Navigate to Settings ---
     console.log("Navigating to Settings Page...");
     await verifyStep('settings_page_load', (async () => {
-      await driver.get(${BASE_URL}/citizen/settings');
+      await driver.get(`${BASE_URL}/citizen/settings`);
       await driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Voice Monitoring') or contains(text(), 'Settings')]")), 8000);
     })());
 
@@ -171,7 +171,7 @@ async function runAllTests() {
     console.log("Testing Sign Out flow...");
     await verifyStep('logout', (async () => {
       // Open drawer menu using navigation
-      await driver.get(${BASE_URL}/citizen/home');
+      await driver.get(`${BASE_URL}/citizen/home`);
       await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'rounded-xl')]")), 5000);
       
       const menuBtn = await driver.findElement(By.xpath("//button[contains(@class, 'hover:bg-slate-100')]"));
