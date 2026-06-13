@@ -1,0 +1,163 @@
+name: 🧪 E2E Test & Excel Report Generation
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  e2e-test-report:
+    name: Run E2E Tests & Generate Report
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js Setup ───────────────────────────────────────────────────
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. Install Dependencies ────────────────────────────────────────────
+      - name: 📦 Install Frontend Dependencies
+        run: npm ci
+
+      - name: 📦 Install Backend Dependencies
+        run: npm ci
+        working-directory: ./server
+
+      # ── 4. Write Environment Files ─────────────────────────────────────────
+      - name: 🔐 Create Frontend .env
+        run: |
+          cat > .env << 'ENVEOF'
+          VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_BACKEND_URL=http://localhost:4000
+          ENVEOF
+
+      - name: 🔐 Create Backend .env
+        run: |
+          cat > .env << 'ENVEOF'
+          PORT=4000
+          FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          GMAIL_USER=${{ secrets.GMAIL_USER }}
+          GMAIL_PASS=${{ secrets.GMAIL_PASS }}
+          TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE=${{ secrets.TWILIO_PHONE }}
+          GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          ENVEOF
+        working-directory: ./server
+
+      # ── 5. Build Frontend (HTTP, no HTTPS plugin needed in CI) ─────────────
+      - name: 🏗️ Build Frontend for CI
+        run: |
+          # Temporarily remove basicSsl plugin for CI build
+          sed -i "s/import basicSsl from '@vitejs\/plugin-basic-ssl';//g" vite.config.js
+          sed -i "s/basicSsl(),//g" vite.config.js
+          npm run build
+        env:
+          NODE_ENV: production
+
+      # ── 6. Start Backend Server ────────────────────────────────────────────
+      - name: 🚀 Start Backend Server
+        run: |
+          cd server
+          node server.js &
+          echo "BACKEND_PID=$!" >> $GITHUB_ENV
+        env:
+          PORT: 4000
+
+      # ── 7. Serve Built Frontend via HTTP ───────────────────────────────────
+      - name: 🌐 Serve Frontend via HTTP
+        run: |
+          npx --yes serve@latest dist --listen 5173 --no-clipboard &
+          echo "FRONTEND_PID=$!" >> $GITHUB_ENV
+
+      # ── 8. Wait for Both Servers to Be Ready ───────────────────────────────
+      - name: ⏳ Wait for Servers to Be Ready
+        run: |
+          echo "Waiting for frontend on port 5173..."
+          timeout 60 bash -c 'until curl -sf http://localhost:5173 > /dev/null; do sleep 2; done'
+          echo "✅ Frontend is up"
+          echo "Waiting for backend on port 4000..."
+          timeout 30 bash -c 'until curl -sf http://localhost:4000/health > /dev/null 2>&1 || curl -sf http://localhost:4000 > /dev/null 2>&1; do sleep 2; done'
+          echo "✅ Backend is up"
+
+      # ── 9. Run Selenium E2E Tests & Generate Excel Report ─────────────────
+      - name: 🧪 Run E2E Tests & Generate Excel Report
+        run: node e2e_run.cjs
+        env:
+          BASE_URL: http://localhost:5173
+          CI: 'true'
+
+      # ── 10. Upload Excel Report as Artifact ────────────────────────────────
+      - name: 📊 Upload E2E Test Report (Excel)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: E2E-Report-Run-${{ github.run_number }}-${{ github.sha }}
+          path: E2E_Functional_Test_Report.xlsx
+          retention-days: 30
+
+      # ── 11. Upload Security Audit Report ───────────────────────────────────
+      - name: 🔒 Upload Security Audit Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Security-Audit-Run-${{ github.run_number }}
+          path: Vulnerability Test Results/
+          retention-days: 30
+
+      # ── 12. Commit & Push Updated Report Back to Repo ─────────────────────
+      - name: 📤 Commit E2E Report to Repository
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+          
+          # Stage only the Excel report
+          git add E2E_Functional_Test_Report.xlsx
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes in report — skipping commit."
+          else
+            git commit -m "ci: auto-update E2E test report [run #${{ github.run_number }}] [skip ci]"
+            git push
+          fi
+
+      # ── 13. Print Summary to GitHub Actions Summary Page ──────────────────
+      - name: 📋 Write Job Summary
+        if: always()
+        run: |
+          echo "## 🧪 StreetSentinel E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run Number** | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered by** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Test Suite** | 100 E2E Functional Test Cases |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Report** | E2E_Functional_Test_Report.xlsx (see Artifacts) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- \`E2E-Report-Run-${{ github.run_number }}\` — Full Excel test report" >> $GITHUB_STEP_SUMMARY
+          echo "- \`Security-Audit-Run-${{ github.run_number }}\` — Security audit results" >> $GITHUB_STEP_SUMMARY
