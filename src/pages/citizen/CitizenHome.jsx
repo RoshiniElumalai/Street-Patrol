@@ -1,0 +1,346 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Shield, ShieldAlert, ShieldCheck, Navigation, PhoneCall, AlertTriangle,
+  Battery, Wifi, Activity, MapPin, Users, Eye, Settings, Mic, MicOff,
+  Bell, Clock, BellOff
+} from 'lucide-react';
+import LiveMap from '../../components/map/LiveMap';
+import { useStore } from '../../context/useStore';
+import { useHardwareTriggers } from '../../hooks/useHardwareTriggers';
+import { useSafeZones } from '../../hooks/useSafeZones';
+
+const CitizenHome = () => {
+  const navigate = useNavigate();
+  const [isProtectionActive, setIsProtectionActive] = useState(false);
+  const [showFakeCall, setShowFakeCall] = useState(false);
+  const [battery, setBattery] = useState(null);
+
+  const {
+    currentUser,
+    threatLevel,
+    aiMessage,
+    triggerEmergency,
+    cancelEmergency,
+    sendEmergencyAlert,
+    countdown,
+    riskScore,
+    audioLevel,
+    isSocketConnected,
+    gpsActive,
+    smsDeliveryStatus,
+    isEmergencyMode,
+    emergencyData,
+    lastKnownLocation,
+    contacts,
+    alertHistory,
+  } = useStore();
+
+  const { isListening, setIsListening, micPermission } = useHardwareTriggers();
+  const { safeZones } = useSafeZones(lastKnownLocation, 3000);
+  const policeCount = safeZones.filter(z => z.type === 'police').length;
+  const safetyScore = Math.round((1 - riskScore) * 100);
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+  const isNightMode = hour >= 20 || hour < 6;
+
+  useEffect(() => {
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        setBattery(Math.round(b.level * 100));
+        b.onlevelchange = () => setBattery(Math.round(b.level * 100));
+      });
+    }
+  }, []);
+
+  const toggleProtection = () => {
+    const next = !isProtectionActive;
+    setIsProtectionActive(next);
+    setIsListening(next);
+  };
+
+  const handleSendNow = () => {
+    cancelEmergency();
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => sendEmergencyAlert('Manual SOS', { lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => sendEmergencyAlert('Manual SOS')
+    ) ?? sendEmergencyAlert('Manual SOS');
+  };
+
+  const threatGradient =
+    threatLevel === 'CRITICAL' ? 'from-red-600 via-red-700 to-rose-900' :
+    threatLevel === 'HIGH'     ? 'from-orange-500 to-red-700' :
+    threatLevel === 'MEDIUM'   ? 'from-amber-500 to-orange-600' :
+                                 'from-slate-800 via-slate-800 to-slate-900';
+
+  const quickActions = [
+    { icon: Navigation, label: 'SafeWalk', sub: 'Live Route', color: 'bg-blue-500', path: '/citizen/tracking' },
+    { icon: PhoneCall,  label: 'Contacts', sub: `${contacts.length} saved`, color: 'bg-emerald-500', path: '/citizen/contacts' },
+    { icon: Bell,       label: 'Alerts',   sub: `${alertHistory.length} total`, color: 'bg-amber-500', path: '/citizen/alerts' },
+    { icon: Users,      label: 'Guardians', sub: 'Tracking', color: 'bg-purple-500', path: '/citizen/guardians' },
+    { icon: Eye,        label: 'Vault',     sub: 'Evidence', color: 'bg-indigo-500', path: '/citizen/vault' },
+    { icon: Settings,   label: 'Settings',  sub: 'Configure', color: 'bg-slate-600', path: '/citizen/settings' },
+  ];
+
+  return (
+    <div className="bg-slate-50 pb-4 min-h-full">
+
+      {/* ─── HERO ─── */}
+      <div className={`bg-gradient-to-br ${threatGradient} px-5 pt-5 pb-6 transition-all duration-1000`}>
+
+        {/* Night Mode Banner */}
+        {isNightMode && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-400/20 border border-amber-400/40 rounded-xl px-3 py-2 mb-4 flex items-center gap-2">
+            <Clock size={13} className="text-amber-300" />
+            <span className="text-amber-300 text-xs font-bold uppercase tracking-wider">Night Safety Mode — Enhanced monitoring on</span>
+          </motion.div>
+        )}
+
+        {/* Greeting + Protection Toggle */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 mr-4">
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{greeting}</p>
+            <h2 className="text-3xl font-black text-white mt-1 leading-tight">
+              {currentUser?.name?.split(' ')[0] || 'Citizen'}
+            </h2>
+            <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+              threatLevel === 'LOW'    ? 'bg-emerald-500/20 text-emerald-300' :
+              threatLevel === 'MEDIUM' ? 'bg-amber-500/20 text-amber-300' :
+              'bg-red-400/30 text-red-200 animate-pulse'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                threatLevel === 'LOW' ? 'bg-emerald-400' : threatLevel === 'MEDIUM' ? 'bg-amber-400' : 'bg-red-300 animate-ping'
+              }`} />
+              {threatLevel} RISK
+            </div>
+          </div>
+
+          {/* ARM/DISARM Button */}
+          <div className="flex flex-col items-center gap-1">
+            <button onClick={toggleProtection}
+              className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                isProtectionActive
+                  ? 'bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.7)]'
+                  : 'bg-white/10 border-2 border-white/30 hover:bg-white/20'
+              }`}>
+              {isProtectionActive && <div className="absolute inset-0 rounded-full border-4 border-white/20 animate-ping" />}
+              <Shield size={38} className="text-white" />
+            </button>
+            <span className="text-white text-[10px] font-black uppercase tracking-widest">
+              {isProtectionActive ? 'DISARM' : 'ARM'}
+            </span>
+          </div>
+        </div>
+
+        {/* AI Status Message */}
+        <div className="mt-4 bg-white/10 rounded-2xl p-3.5 border border-white/10 flex items-center gap-3">
+          <div className={`p-2 rounded-xl flex-shrink-0 ${isProtectionActive ? 'bg-red-500/40 animate-pulse' : 'bg-blue-500/30'}`}>
+            <Activity size={16} className="text-white" />
+          </div>
+          <p className="text-white text-sm font-semibold leading-snug">{aiMessage}</p>
+        </div>
+
+        {/* Live Status Pills */}
+        <div className="flex gap-2 mt-3 flex-wrap">
+          <StatusPill icon={isProtectionActive ? Mic : MicOff}
+            label={isProtectionActive ? `${Math.round(audioLevel)} dB` : 'MIC OFF'}
+            active={isProtectionActive && isListening} />
+          <StatusPill icon={MapPin} label={gpsActive ? 'GPS Active' : 'GPS Off'} active={gpsActive} />
+          <StatusPill icon={Wifi} label={isSocketConnected ? 'Online' : 'Offline'} active={isSocketConnected} />
+          {battery !== null && <StatusPill icon={Battery} label={`${battery}%`} active={battery > 20} warning={battery <= 20} />}
+        </div>
+      </div>
+
+      <div className="px-4 space-y-4 mt-4">
+
+        {/* ─── SCORE CARDS ─── */}
+        <div className="grid grid-cols-3 gap-3">
+          <ScoreCard value={safetyScore} label="Safety Score"
+            color={safetyScore > 80 ? 'text-emerald-500' : safetyScore > 50 ? 'text-amber-500' : 'text-red-500'} />
+          <ScoreCard value={policeCount > 0 ? policeCount : '?'} label="Police Nearby" color="text-blue-500" />
+          <ScoreCard value={contacts.length} label="Guardians" color="text-purple-500" />
+        </div>
+
+        {/* ─── BIG SOS BUTTON ─── */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => triggerEmergency('Manual SOS Override')}
+          className="w-full bg-gradient-to-r from-red-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-red-400/40 flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+            <ShieldAlert size={32} className="text-white" />
+          </div>
+          <div className="text-left">
+            <p className="text-white text-xl font-black tracking-wider">SOS EMERGENCY</p>
+            <p className="text-red-200 text-xs font-bold mt-0.5">Tap to send immediate alert to all contacts</p>
+          </div>
+        </motion.button>
+
+        {/* ─── QUICK ACTIONS ─── */}
+        <div>
+          <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Quick Access</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {quickActions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <motion.button key={a.path} whileTap={{ scale: 0.93 }}
+                  onClick={() => navigate(a.path)}
+                  className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                  <div className={`w-11 h-11 ${a.color} rounded-xl flex items-center justify-center mb-2`}>
+                    <Icon size={20} className="text-white" />
+                  </div>
+                  <p className="text-slate-800 font-bold text-[11px]">{a.label}</p>
+                  <p className="text-slate-400 text-[9px] mt-0.5">{a.sub}</p>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ─── UTILITY ROW ─── */}
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button whileTap={{ scale: 0.96 }}
+            onClick={() => setShowFakeCall(true)}
+            className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <PhoneCall size={19} className="text-purple-600" />
+            </div>
+            <div className="text-left">
+              <p className="font-bold text-slate-800 text-sm">Fake Call</p>
+              <p className="text-slate-400 text-[10px]">Escape system</p>
+            </div>
+          </motion.button>
+
+          <motion.button whileTap={{ scale: 0.96 }}
+            onClick={toggleProtection}
+            className={`rounded-2xl p-4 border shadow-sm flex items-center gap-3 transition-colors ${
+              isProtectionActive ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100'
+            }`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              isProtectionActive ? 'bg-red-500' : 'bg-slate-100'
+            }`}>
+              {isProtectionActive
+                ? <Mic size={19} className="text-white animate-pulse" />
+                : <MicOff size={19} className="text-slate-500" />}
+            </div>
+            <div className="text-left">
+              <p className="font-bold text-slate-800 text-sm">Voice SOS</p>
+              <p className={`text-[10px] font-bold ${isProtectionActive ? 'text-red-500' : 'text-slate-400'}`}>
+                {isProtectionActive ? 'Listening...' : 'Tap to arm'}
+              </p>
+            </div>
+          </motion.button>
+        </div>
+
+        {/* ─── LIVE MAP ─── */}
+        <div>
+          <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Live Safety Map</h3>
+          <motion.button whileTap={{ scale: 0.99 }}
+            onClick={() => navigate('/citizen/tracking')}
+            className="w-full h-52 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
+            <div className="absolute inset-0 pointer-events-none z-0">
+              <LiveMap interactive={false} zoom={13} userLocation={lastKnownLocation} markers={safeZones.slice(0, 10)} />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent z-10 pointer-events-none" />
+            <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end justify-between pointer-events-none">
+              <div>
+                <p className="text-white font-black text-base">Live Map</p>
+                <p className="text-emerald-400 text-xs font-bold">{policeCount} safe zones • Tap to navigate</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">
+                <p className="text-white text-xs font-bold">OPEN →</p>
+              </div>
+            </div>
+          </motion.button>
+        </div>
+      </div>
+
+      {/* ─── EMERGENCY COUNTDOWN MODAL ─── */}
+      <AnimatePresence>
+        {countdown !== null && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6">
+            <motion.div initial={{ scale: 0.8, y: 40 }} animate={{ scale: 1, y: 0 }}
+              className="bg-white max-w-sm w-full rounded-3xl overflow-hidden shadow-2xl">
+              <div className="h-2 bg-red-500 animate-pulse" />
+              <div className="p-8 flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-5">
+                  <AlertTriangle size={40} className="text-red-500" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-800 mb-2">Emergency Detected</h2>
+                <p className="text-slate-500 font-medium mb-6 text-sm">
+                  {emergencyData?.reason || 'Distress detected. Alert will be sent automatically.'}
+                </p>
+                <div className="text-8xl font-black text-red-500 mb-8 tabular-nums leading-none">{countdown}</div>
+                <div className="flex w-full gap-3">
+                  <button onClick={cancelEmergency}
+                    className="flex-1 py-4 bg-slate-100 text-slate-700 font-black rounded-2xl text-sm hover:bg-slate-200 transition-colors">
+                    I'M SAFE
+                  </button>
+                  <button onClick={handleSendNow}
+                    className="flex-1 py-4 bg-red-500 text-white font-black rounded-2xl text-sm shadow-lg shadow-red-400/40 hover:bg-red-600 transition-colors">
+                    SEND NOW
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── FAKE CALL OVERLAY ─── */}
+      <AnimatePresence>
+        {showFakeCall && (
+          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            className="fixed inset-0 z-[200] bg-slate-900 flex flex-col">
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="w-24 h-24 bg-slate-700 rounded-full flex items-center justify-center mb-6">
+                <PhoneCall size={40} className="text-white" />
+              </div>
+              <p className="text-slate-400 text-lg mb-2">Incoming Call</p>
+              <h2 className="text-5xl font-light text-white mb-2">Dad (Home)</h2>
+              <p className="text-slate-500 text-sm animate-pulse">Ringing...</p>
+            </div>
+            <div className="pb-16 px-12 flex justify-between items-center">
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={() => setShowFakeCall(false)}
+                  className="w-18 h-18 w-[72px] h-[72px] rounded-full bg-red-500 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.5)]">
+                  <PhoneCall size={28} className="text-white rotate-[135deg]" />
+                </button>
+                <span className="text-slate-500 text-xs">Decline</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={() => setShowFakeCall(false)}
+                  className="w-[72px] h-[72px] rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.5)] animate-pulse">
+                  <PhoneCall size={28} className="text-white" />
+                </button>
+                <span className="text-slate-500 text-xs">Accept</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const StatusPill = ({ icon: Icon, label, active, warning }) => (
+  <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold ${
+    warning ? 'bg-red-500/30 text-red-200' :
+    active  ? 'bg-white/15 text-white' :
+              'bg-white/8 text-slate-400'
+  }`}>
+    <Icon size={11} /> {label}
+  </div>
+);
+
+const ScoreCard = ({ value, label, color }) => (
+  <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm text-center">
+    <p className={`text-3xl font-black ${color}`}>{value}</p>
+    <p className="text-[9px] font-bold text-slate-400 uppercase mt-1 leading-tight">{label}</p>
+  </div>
+);
+
+export default CitizenHome;

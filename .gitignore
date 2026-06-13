@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment variables (DO NOT commit secrets)
+.env
+.env.local
+.env.production
+server/.env
+
+# Firebase service account keys
+*.json.key
+serviceAccountKey.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test artifacts (keep Excel reports)
+debug_selenium.cjs
+check_login.cjs
+get_console_logs.cjs
+read_docx.py
+prepare_user.cjs
+server/prepare_user.cjs
+
+# Vite cache
+.vite/

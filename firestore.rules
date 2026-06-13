@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Matches the user profile document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Allow reads and writes to settings, contacts, and alerts subcollections
+      match /settings/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /contacts/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /alerts/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Emergencies collection — written by Admin SDK (server-side), read-only for authenticated police users
+    match /emergencies/{docId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only server (Admin SDK) can write — Admin SDK bypasses rules
+    }
+  }
+}

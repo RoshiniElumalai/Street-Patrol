@@ -1,0 +1,29 @@
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+const fs = require('fs');
+const path = require('path');
+
+const serviceAccountPath = path.join(__dirname, '../serviceAccountKey.json');
+
+let db;
+let adminApp;
+
+try {
+  if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = require(serviceAccountPath);
+    adminApp = initializeApp({
+      credential: cert(serviceAccount)
+    });
+    console.log('[Firebase Admin] Initialized with serviceAccountKey.json');
+  } else {
+    adminApp = initializeApp();
+    console.log('[Firebase Admin] Initialized with Application Default Credentials');
+  }
+  
+  db = getFirestore(adminApp);
+} catch (error) {
+  console.error('[Firebase Admin] Initialization Error:', error.message);
+  console.warn('⚠️ Ensure you have placed serviceAccountKey.json in the server/ directory to use Firestore features.');
+}
+
+module.exports = { admin: require('firebase-admin'), db };

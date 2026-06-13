@@ -1,0 +1,545 @@
+FORM 1
+THE PATENTS ACT 1970 (39 of 1970) and
+THE PATENTS RULES, 2003
+APPLICATION FOR GRANT OF PATENT
+(See section7, 54 and 135 and sub‐rule (1) of rule 20)
+   (FOR OFFICE USE ONLY)
+Application No.
+Filing date:
+Amount of Fee
+paid:
+CBR No:
+Signature:
+1.APPLICANT’S REFERENCE / IDENTIFICATION NO.(AS ALLOTTED BY OFFICE)
+2.TYPE OF APPLICATION [Please tick () at the appropriate category]
+Ordinary()
+Convention( )
+PCT‐NP( )
+PPH ( )
+Divisional( )
+Patent of
+Addition (  )
+Divisional
+(  )
+Patent of
+Addition (   )
+Divisional (  )
+Patent of Addition (   )
+3A. APPLICANT(S)
+Name in Full
+Gender
+(optional,
+for
+individuals)
+Nationality
+Country of
+Residence
+Age
+(optional,
+for natural
+persons)
+Address of the Applicant
+Saveetha Institute of Medical And Technical Sciences
+Prefer not to disclose
+Indian
+India
+- Prefer not
+to disclose
+House No.
+Saveetha Institute of Medical And Technical Sciences
+Street
+Saveetha Nagar,Thandalam
+City
+Chennai
+State
+Tamil Nadu
+Country
+India
+Pin code
+602105
+Email (OTP verification mandatory will be
+redacted)
+patents.sdc@saveetha.com
+Contact
+Number (OTP verification mandatory will be
+redacted)
+9884293869
+3B. CATEGORY OF APPLICANT [Please tick ()at the appropriate category]
+Natural Person ( )
+Other than Natural Person ( )
+Educational institution ( )
+Small Entity ( )
+Startup ( )
+Others ( )
+4. INVENTOR(S) [Please tick() at the appropriate category]
+Are all the inventor(s) same as the applicant(s) named above?
+Yes ( )
+No()
+If “No”, furnish the details of the inventor(s)                                                                                                                               
+Name in Full
+Gender
+(Optional,
+for
+individuals)
+Nationality
+Country of
+Residence
+Age
+(Optional,
+for natural
+persons)
+Address of the Applicant
+Ms. J.Jyothi  Priya
+  Female
+Indian
+India
+- Prefer not
+to disclose
+House No.
+Saveetha Institute Of Medical And Technical Sciences
+Street
+Saveetha Nagar,Thandalam
+City
+Chennai
+State
+Tamil Nadu
+Country
+India
+Pin code
+602105
+Email (OTP verification mandatory will be redacted)
+patents.sdc@saveetha.com
+Contact
+Number (OTP verification mandatory will be redacted)
+9884293869
+Dr.R.Karthik Raja 
+Male
+Indian
+India
+- Prefer not
+to disclose
+House No.
+Saveetha Institute Of Medical And Technical Sciences
+Street
+Saveetha Nagar,Thandalam
+City
+Chennai
+State
+Tamil Nadu
+Country
+India
+Pin code
+602105
+Email (OTP verification mandatory will be redacted)
+patents.sdc@saveetha.com
+Contact
+Number (OTP verification mandatory will be redacted)
+9884293869
+Dr. Josh Kumar
+ Male
+Indian
+India
+- Prefer not
+to disclose
+Street
+Saveetha Nagar,Thandalam
+City
+Chennai
+State
+Tamil Nadu
+Country
+India
+Pin code
+602105
+Email (OTP verification mandatory will be redacted)
+patents.sdc@saveetha.com
+Contact
+Number (OTP verification mandatory will be redacted)
+9884293869
+Dr Ramya Mohan
+Female
+Indian
+India
+- Prefer not
+to disclose
+House No.
+Saveetha Institute Of Medical And Technical Sciences
+Street
+Saveetha Nagar,Thandalam
+City
+Chennai
+State
+Tamil Nadu
+Country
+India
+Pin code
+602105
+Email (OTP verification mandatory will be redacted)
+patents.sdc@saveetha.com
+Contact
+Number (OTP verification mandatory will be redacted)
+9884293869
+5. Title of the Invention
+5.TITLE OFTHE INVENTION
+STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+6.AUTHORISED REGISTERED PATENT
+AGENT(S)
+IN/PA No.
+Name
+Mobile No. (OTP
+Verification mandatory will be redacted)
+7.ADDRESS FOR SERVICE OF APPLICANT IN INDIA
+Name
+Saveetha Institute of Medical and Technical Sciences
+Postal Address
+Saveetha Nagar, Thandalam, Chennai - 602 105 
+Telephone No.
+04426801580
+Mobile No. (OTP
+Verification mandatory will be redacted)
+9884293869
+Fax No.
+E‐mail ID (OTP
+Verification mandatory will be redacted)
+patents.sdc@saveetha.com
+8. IN CASE OF APPLICATION CLAIMING PRIORITY OF APPLICATION FILED IN CONVENTION COUNTRY, PARTICULARS OF CONVENTION APPLICATION PARTICULARS OF CONVENTION APPLICATION
+Country
+Application
+Number
+Filing date
+Name of the
+applicant
+Title of the
+invention
+IPC (as classified in the
+Convention country)
+9.IN CASE OF PCT NATIONAL PHASE APPLICATION, PARTICULARS OF INTERNATIONAL APPLICATION FILED UNDER PATENT CO‐OPERATION TREATY (PCT)
+International application number
+International filing date
+10.IN CASE OF DIVISIONAL APPLICATION FILED UNDER SECTION 16,PARTICULARS OF ORIGINAL (FIRST) APPLICATION
+(FIRST) APPLICATION
+Original (first) application No.
+Date of filing of original (first) application
+11.IN CASE OF PATENT OF ADDITION FILED UNDER SECTION 54, PARTICULARS OF MAIN APPLICATION OR PATENT
+OR PATENT
+Main application/patent No.
+Date of filing of main application
+12.DECLARATIONS
+(i)Declaration by the inventor(s) 
+     (In case the applicant is an assignee: The inventor(s) may sign herein below or the applicant may 
+     upload the assignment or enclose the assignment with this application for patent or send the assignment by post/electronic transmission duly authenticated within the prescribed period). 
+     We, the above named inventor(s) is/are the true& first inventor(s) for this Invention and declare that the applicant(s) herein is/are my/our assignee or legal representative.
+                                                      
+                                                     
+                                                                          
+                                                                                        
+                       Saveetha Institute of Medical        and Technical Sciences
+                                                
+(ii)Declaration by the applicant(s)in the convention country
+(In case the applicant in India is different than the applicant in the convention country: the applicant in the convention country may sign herein below or applicant in India may upload the assignment from the applicant in the convention country or enclose the said assignment with this application for patent or send the assignment by post/electronic transmission duly authenticated within the prescribed period)
+I/We, the applicant(s) in the convention country declare that the applicant(s) herein is/are my/our assignee or legal representative.
+(a) Date
+(b) Signature(s)
+(c) Name(s) of the signatory
+iii)Declaration by the applicant(s)
+We the applicant(s) hereby declare(s) that: ‐
+√√
+√
+√
+We are in possession of the above‐mentioned invention.
+√√
+√
+√
+The  provisional/complete specification relating  to  the  invention  is  filed  with  this     application.
+XX
+X
+X
+The invention as disclosed in the specification uses the biological material from India and the necessary permission from the competent authority shall be submitted by us before the grant of patent to us.
+√√
+√
+√
+There is no lawful ground of objection(s) to the grant of the Patent to us. 
+XX
+X
+X
+We are the true & first inventor(s).
+√√
+√
+√
+We are the assignee or legal representative of true & first inventor(s).
+XX
+X
+X
+The application or each of the applications, particulars of which are given in Paragraph‐8, was the first application in convention country in respect of our invention(s). 
+XX
+X
+X
+I/We claim the priority from the above mentioned application(s) filed in convention country and state that no application for protection in respect of the invention had been made in a convention country before that date by us or by any person from which We derive the title.
+XX
+X
+X
+My/Our application in India is based on international application under Patent Cooperation Treaty (PCT) as mentioned in Paragraph‐9.
+XX
+X
+X
+The application is divided out of our application particulars of which is given in Paragraph‐10and pray that this application may be treated as deemed to have been filed on ________    under section 16 of the Act.
+XX
+X
+X
+The said invention is an improvement in or modification of the invention particulars of which are given in Paragraph‐11.
+13. FOLLOWING ARE THE ATTACHMENTS WITH THE APPLICATION
+(a) Form 2
+Item
+Details
+Fee
+Remarks
+Complete/provisional   specification)
+No. of pages : 4
+No. of Claim(s)
+No. of claims: 1
+and No. of pages: 1
+Abstract
+No. of pages: 1
+No. of Drawing(s)
+No. of drawings: 2
+No. of pages:  2
+#  In case of a complete specification, if the applicant desires to adopt the drawings filed with his
+Provisional specification as the drawings or part of the drawings for the complete specification under rule13(4), the number of such pages filed with the provisional specification are required to be mentioned here.
+(b) Complete specification (in conformation with the international application)/as amended before the International Preliminary Examination Authority (IPEA), as applicable (2 copies). 
+  
+(c)  Sequence listing in electronic form
+(d)  Drawings (in conformation with the international application)/as amended before the International
+Preliminary Examination Authority (IPEA), as applicable (2copies).
+(e) Priority document(s) or a request to retrieve the priority document(s) from DAS (Digital Access Service) if the applicant had already requested the office of first filing to make the priority document(s) available to DAS.
+(f)  Translation of priority document/Specification/International Search Report/International Preliminary Report on patentability.
+(g) Statement and Undertaking Form 3
+  
+  (h) Declaration of Inventor ship on Form 5
+  (i) Power of Authority
+  (j)  
+Total fee  ……….………….          Date…………......on………….………….………….………….       
+We hereby declare that to the best of my/our knowledge, information and belief the fact and matters stated herein are correct and I/We request that a patent may be granted to us for the said invention.
+Dated this    day of      2026
+                                                                                  
+                                                                                                              
+To
+The Controller of Patents
+The Patent Office, at Chennai
+India
+FORM 5
+THE PATENTS ACT, 1970
+(39 of 1970)
+and
+THE PATENTS RULES, 2003
+Declaration as to Inventorship
+[See Section 10 (6); rule 13(6)]
+1. Name of the Applicant (s). 
+Saveetha Institute of Medical        and Technical Sciences
+hereby declare that the true and first inventor(s) of the invention disclosed in the complete specification filed in pursuance of my/our application numbered                dated              is/ are   
+2. Inventor (s)
+(a) Name           :   Ms. J.Jyothi  Priya
+ (b) Nationality : Indian
+(c) Address      : Saveetha Institute of Medical and Technical Sciences 
+ (d) Saveetha Nagar, Thandalam, Chennai - 602 105, Tamil Nadu, India.
+(a) Name          :     Dr.R.Karthik Raja 
+ (b) Nationality : Indian
+(c) Address      : Saveetha Institute of Medical and Technical Sciences 
+ (d) Saveetha Nagar, Thandalam, Chennai - 602 105, Tamil Nadu, India.
+(a) Name          :     Dr. Josh Kumar
+ (b) Nationality : Indian
+(c) Address      : Saveetha Institute of Medical and Technical Sciences 
+ (d) Saveetha Nagar, Thandalam, Chennai - 602 105, Tamil Nadu, India.
+(a) Name          : Dr Ramya Mohan
+(b) Nationality : Indian
+(c) Address      : Saveetha Institute of Medical and Technical Sciences 
+        Saveetha Nagar, Thandalam, Chennai - 602 105, Tamil Nadu, India.
+Dated this ……………………. day of ……………20……
+Signature:
+Name of the Signatory:
+3. Declaration to be given when the application in India is filed by the applicant(s) in the convention country:
+We the applicant(s) in the convention country hereby declare that our right to apply for a patent in India is by way of assignment from the true and first inventor(s)
+Dated this ……………………. day of ……………20……
+Signature:
+Name of the Signatory:
+4. Statement (to be signed by the additional inventor(s) not mentioned in the application form)
+I/We assent the invention referred to in the above declaration, being included in the complete specification filed in pursuance of the stated application 
+Dated this ……………………. day of ……………20……
+Signature of the additional inventors:
+Name:
+     To
+      The Controller of Patents,
+      The Patent Office,
+       at 
+FORM - 2
+THE PATENTS ACT, 1970
+(39 OF 1970)
+&
+THE PATENTS RULES, 2003
+COMPLETE SPECIFICATION
+(see Section 10 & rule 13)
+1.TITLE OF THE INVENTION:  STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+2. APPLICANT:
+S.No
+NAME
+NATIONALITY
+ADDRESS
+1
+Saveetha Institute of Medical        and Technical Sciences
+INDIAN
+Saveetha Nagar, Thandalam, Chennai - 602 105, Tamil Nadu, India
+3. PREAMBLE TO THE DESCRIPTION:
+The following specification describes the invention and how it is to be performed.
+4.COMPLETE SPECIFICATION
+The following specification particularly describes the invention and the manner in which it is to be performed. -----------------Separate sheet is attached---------------------------
+5.DESCRIPTION
+Separate sheet is attached 
+6.CLAIMS
+Separate sheet is attached 
+       DATE:
+SIGNATURE:
+                  NAME
+ABSTRACT OF THE INVENTION
+Separate sheet is attached--
+Note:-
+Repeat boxes inn case of more than one entry.
+To be signed by the applicant(s) or by authorized registered patent agent otherwise where mentioned.
+Tic ()/cross(x) whichever is applicable/not applicable in declaration inpara-9.
+Name of the Inventor and applicant should be given in full, family name in the beginning.
+Complete address of the inventor and applicant should be given stating the postal Index no./code, state and country, Strike out the column which is/are not applicable
+FORM 3
+THE PATENTS ACT, 1970
+(39 of 1970)
+and
+THE PATENTS RULES, 2003
+STATEMENT AND UNDERTAKING UNDER SECTION 8 
+(See sub-rule (2) and (3) of Rule 12)
+1. Name of the applicant(s).
+Saveetha Institute of Medical        and Technical Sciences 
+2. Name, address and nationality of the joint applicant.
+hereby declare: 
+(i) that I/We who have made the application for patent number in India, dated alone/jointly with 
+(ii) that I/We have not made any application for the same/substantially the same invention outside India
+Or
+(iii) that I/We have made for the same/ substantially same invention, application(s) for patent in the other countries, the particulars of which are given below:
+Name of the
+country
+Date of
+application
+Application
+No.
+Status of the
+application
+Date of
+publication
+Date of disposal
+3. Name and address of the assignee
+(i) that the rights in the application(s) filed in India has/have been assigned to ………………………………
+………………………………………………………………………
+…………………………………………………
+(ii) that I/We undertake that upto the date of grant of the patent by the Controller, I/We would keep him informed in writing regarding the details of corresponding applications for patents filed outside India in accordance with the provisions contained in section 8 and rule 12.
+Dated this………day of……….20…...
+4. To be signed by the applicant or his authorized registered patent agent.
+Signature
+5. Name of the natural person who has signed.
+To
+The Controller of Patents,
+The Patent Office,
+at 
+FORM 9
+THE PATENTS ACT, 1970
+(39 of 1970)
+and
+THE PATENTS RULES, 2003
+Request for Publication
+[See Section 11A (2); rule 24A]
+1. Name address and Nationality of the Applicant (s). 
+Saveetha Institute Of Medical And Technical Sciences Saveetha Nagar,
+Thandalam, Chennai - 602 105, Tamil Nadu, India.
+Indian
+hereby request for early publication of my/our application for 
+Patent No                         
+Dated                under Sec 11A (2) of the act.
+Dated this……. day of ……….20….
+2. To be signed by the Applicant or his authorized registered patent agent.
+(Signature)
+3. Name of the natural person who has signed.
+To
+The Controller of Patents,
+The Patent Office,
+at
+STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+StreetSentinel is an AI-powered urban safety system designed to provide real-time automatic threat detection and emergency response using smartphones. The system consists of a Citizen App and a Police App connected through a cloud backend. The Citizen App continuously monitors environmental sounds using the smartphone microphone and AI-based sound classification models such as YAMNet to identify distress signals including screams, cries for help, or violent sounds. Upon detecting a potential threat, the application automatically triggers an emergency alert without requiring manual user interaction. The alert includes the user's live GPS location, timestamp, and emergency details, which are securely transmitted to the backend. The backend instantly forwards the alert to nearby police officers through the Police App, where incidents are displayed on a live map dashboard for rapid response. StreetSentinel transforms smartphones into intelligent safety sensors and provides a proactive, scalable, and privacy-focused solution for urban public safety.
+               Date             :
+Signature:
+Name:Saveetha Institute of Medical and Technical Sciences
+STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+THE FIELD OF INVENTION (HEALTHCARE INDUSTRY)
+This invention pertains to the field of 5G-enabled computer vision and real-time video analytics, specifically crowd density estimation and monitoring using live camera feeds in urban infrastructure, public safety, and event management.
+BACKGROUND OF THE INVENTION
+Traditional crowd counting relies on manual observation or outdated infrared sensors, which suffer from inaccuracies in varying lighting, occlusions, and scalability issues. These methods fail to deliver real-time insights needed for safety in high-density areas like festivals, stadiums, or transit points. Conventional systems also lack high-speed connectivity, leading to delays in data processing and response. A need exists for a robust, low-latency solution that integrates 5G for seamless video streaming and AI for precise density estimation.
+SUMMARY OF THE INVENTION
+The 5G-Based Real-Time Crowd Counting Using Camera system simplifies crowd monitoring by capturing live video streams from IP cameras, transmitting data via 5G networks to edge servers for initial AI-based density estimation using attention models. Aggregated counts and analytics are displayed on a centralized web/mobile dashboard, enabling authorities to visualize heatmaps, track trends, and receive instant alerts for overcrowding thresholds. This architecture ensures ultra-low latency under 10ms, scalability for multi-camera deployments, and seamless integration without physical sensors. 
+                Date            :
+     Signature:
+  Name:Saveetha Institute of Medical and Technical Sciences
+STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+The 5G-Based Real-Time Crowd Counting Using Camera  system is engineered with modern technologies and standards to ensure performance, reliability, and real-time accuracy across diverse public spaces and geographic regions.
+Core Technological Components:
+5G Modules: For high-bandwidth, low-latency video streaming.
+Cameras: IP cameras with real-time encoding.
+Edge Devices: Process YOLO or attention models locally to reduce latency.
+Backend: Python with OpenCV/TensorFlow, hosted on AWS or similar.
+Standards: Complies with 3GPP 5G specs, IEEE for vision processing.
+Key Functional Features:
+Real-time density estimation achieving 95%+ accuracy in crowds up to 1000+ individuals.
+Customizable monitoring zones with GPS heatmaps and overcrowding alerts via SMS/API.
+Multi-camera fusion for 360° coverage and historical trend analytics export.
+Offline buffering with automatic 5G resync for intermittent connectivity.​
+Security and Standards:
+Complies with 3GPP Release 16 for 5G, IEEE 802.11 for WiFi fallback, and GDPR for data privacy.
+End-to-end encryption for feeds and analytics using TLS 1.3.​
+Planned Future Enhancements:
+Predictive crowd flow using LSTM models.
+Integration with public health APIs for anomaly detection.
+Multilingual dashboard and AR overlays for field officers.
+  Date               :
+Signature:
+Name:Saveetha Institute of Medical and Technical Sciences
+STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEMTop of Form
+The system deploys IP cameras or drone-mounted units to capture live video feeds from public areas like event venues or urban streets, encoding and transmitting them via 5G URLLC slices to an edge server for sub-10ms latency processing using attention-based AI models that detect heads/poses and generate resilient crowd counts despite occlusions or lighting issues. Aggregated density metrics, heatmaps, and trends stream to a central web/mobile dashboard where authorities configure zones, set thresholds, view GPS overlays, and receive instant SMS/app alerts, enabling proactive safety management across multi-camera setups without physical sensors.
+                Date            :
+Signature:
+Name:Saveetha Institute of Medical and Technical Sciences
+  STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM
+CLAIMCLAIM
+CLAIM
+CLAIM
+We Claim
+A 5G-based real-time crowd counting system utilizing live camera feeds for accurate density estimation in public spaces without physical sensors.
+Edge AI processing with attention-based models to handle occlusions, varying lighting, and high-density crowds.
+Ultra-low latency data transmission via 5G URLLC, enabling counts under 10ms for proactive overcrowding alerts in smart cities and events.                                                                           
+Scalable centralized dashboard displaying heatmaps, trends, GPS overlays, and multi-camera integration for authorities.
+Flexible architecture supporting future enhancements like camera, predictive analytics, and public safety API integrations.
+Date                  :
+Signature:
+Name:Saveetha Institute of Medical and Technical Sciences
+                                       FORM 18
+THE PATENTS ACT 1970 
+(39 of 1970) 
+&
+THE PATENTS RULES, 2003
+REQUEST/EXPRESS REQUEST FOR  EXAMINATION OF APPLICATION FOR PATENT
+[See SECTION 11B and rule 20(4) (ii), 24B(1)(i)]
+(FOR OFFICE USE ONLY)
+RQ No.
+Filing date:
+Amount of Fee paid:
+CBR No:
+Signature:
+APPLICANT(S)/OTHER INTERESTED PERSON 2. I/We   hereby request  that  my/our application for patent no ----- filed on --- for the invention titled STREETSENTINEL – AI-BASED REAL-TIME URBAN SAFETY AND THREAT DETECTION SYSTEM under sections 12 and 13 of the Act.                                                  or. I/We  ---------hereby  request  that  my/our application for patent no.-------filed on---------for ------------the---------invention titled  based  on  Patent  Cooperation  Treaty  (PCT)  application no………………..….  dated…………………..  made  in  country  ………..  shall  be  examined  under sections 12 and 13 of the Act, immediately without waiting for the expiry of 31 months as specified in rule 20(4)(ii).3. I/We  the interested person    request  for the examination of the application no..------- dated --------filed by the applicant  -------- titled----------- -shall be examined under sections 12 and 13 of the Act. As an evidence of my/our interest in the application for patent following documents are submitted.----------------------------------------------------------------------------------------------ADDRESS FOR SERVICE              Saveetha Institute Of Medical And Technical     Sciences Saveetha Nagar,Thandalam, Chennai - 602 105, Tamil Nadu, India.Dated this                                                                                                 To                                                                             The Controller of Patents                                          The Patent Office at Chennai                                    ` To be signed by the applicant(s) or by his/ their authorized registered patent agent
+THE FIELD OF INVENTION (PUBLIC SAFETY INDUSTRY)
+This invention relates to AI-powered urban safety systems, real-time sound analysis, emergency response applications, and smart city public safety monitoring using smartphones and cloud-based communication systems.
+BACKGROUND OF THE INVENTION
+Existing emergency response solutions such as SOS applications and wearable panic devices depend heavily on manual user activation, which may not be possible during dangerous situations. CCTV systems mainly provide post-incident evidence without proactive intervention. Therefore, there is a need for an intelligent system capable of automatically detecting distress situations and immediately alerting nearby authorities in real time.
+SUMMARY OF THE INVENTION
+StreetSentinel provides an automated safety ecosystem using AI-based sound recognition, GPS tracking, and cloud communication. The Citizen App continuously monitors environmental sounds locally on the smartphone and automatically sends alerts when danger signals are detected. The Police App receives these alerts through a centralized backend and displays incidents on a live dashboard for immediate action. The system is scalable, cost-effective, privacy-focused, and does not require additional hardware.

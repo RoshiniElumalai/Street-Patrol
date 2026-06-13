@@ -1,0 +1,52 @@
+.neon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.neon-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+}
+
+.neon-btn-primary {
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+.neon-btn-primary:hover {
+  box-shadow: 0 0 15px var(--color-primary-glow), inset 0 0 10px var(--color-primary-glow);
+  text-shadow: 0 0 5px var(--color-primary-glow);
+}
+
+.neon-btn-danger {
+  border: 1px solid var(--color-danger);
+  box-shadow: 0 0 10px rgba(255, 42, 42, 0.2);
+}
+.neon-btn-danger:hover {
+  box-shadow: 0 0 15px var(--color-danger-glow), inset 0 0 10px var(--color-danger-glow);
+  text-shadow: 0 0 5px var(--color-danger-glow);
+}
+
+.neon-btn-purple {
+  border: 1px solid var(--color-neon-purple);
+  box-shadow: 0 0 10px rgba(181, 32, 255, 0.2);
+}
+.neon-btn-purple:hover {
+  box-shadow: 0 0 15px var(--color-neon-purple-glow), inset 0 0 10px var(--color-neon-purple-glow);
+  text-shadow: 0 0 5px var(--color-neon-purple-glow);
+}
