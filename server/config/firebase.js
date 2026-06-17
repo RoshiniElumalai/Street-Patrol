@@ -15,12 +15,12 @@ try {
       credential: cert(serviceAccount)
     });
     console.log('[Firebase Admin] Initialized with serviceAccountKey.json');
+    db = getFirestore(adminApp);
   } else {
-    adminApp = initializeApp();
-    console.log('[Firebase Admin] Initialized with Application Default Credentials');
+    adminApp = initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || 'sos-street' });
+    console.log('[Firebase Admin] Initialized with Application Default Credentials (DB will be mocked)');
+    db = null;
   }
-  
-  db = getFirestore(adminApp);
 } catch (error) {
   console.error('[Firebase Admin] Initialization Error:', error.message);
   console.warn('⚠️ Ensure you have placed serviceAccountKey.json in the server/ directory to use Firestore features.');

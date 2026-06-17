@@ -25,6 +25,7 @@ import EvidenceVault from './pages/citizen/EvidenceVault';
 import Alerts from './pages/citizen/Alerts';
 import Contacts from './pages/citizen/Contacts';
 import Guardians from './pages/citizen/Guardians';
+import SystemHealth from './pages/citizen/SystemHealth';
 import EmergencyOverlay from './components/ui/EmergencyOverlay';
 
 // Police Pages
@@ -99,6 +100,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="vault" element={<EvidenceVault />} />
+            <Route path="health" element={<SystemHealth />} />
           </Route>
 
           {/* Police Routes */}

@@ -32,7 +32,8 @@ export const useHardwareTriggers = () => {
     calibrationProgress, 
     baselineDb,
     micPermission,
-    audioContextState
+    audioContextState,
+    analyserNode
   } = useAudioDetection(isListening, handleAudioThreat);
 
   // Sync Audio DB to Store
@@ -93,6 +94,7 @@ export const useHardwareTriggers = () => {
     calibrationProgress,
     batteryLevel,
     micPermission,
-    audioContextState
+    audioContextState,
+    analyserNode
   };
 };

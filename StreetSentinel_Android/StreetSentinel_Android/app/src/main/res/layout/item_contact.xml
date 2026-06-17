@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvContactName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="John Doe"
+                android:textSize="18sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvPrimaryBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PRIMARY"
+                android:textColor="#FF0000"
+                android:visibility="gone"
+                android:layout_marginStart="8dp"
+                app:layout_constraintTop_toTopOf="@id/tvContactName"
+                app:layout_constraintBottom_toBottomOf="@id/tvContactName"
+                app:layout_constraintStart_toEndOf="@id/tvContactName"/>
+
+            <TextView
+                android:id="@+id/tvGuardianBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GUARDIAN"
+                android:textColor="#00FF00"
+                android:visibility="gone"
+                android:layout_marginStart="8dp"
+                app:layout_constraintTop_toTopOf="@id/tvContactName"
+                app:layout_constraintBottom_toBottomOf="@id/tvContactName"
+                app:layout_constraintStart_toEndOf="@id/tvPrimaryBadge"/>
+
+            <TextView
+                android:id="@+id/tvContactPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1234567890"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvContactName"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvContactEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="john@example.com"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvContactPhone"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <Button
+                    android:id="@+id/btnSetPrimary"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Make Primary"/>
+
+                <ImageButton
+                    android:id="@+id/btnEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:background="?android:attr/selectableItemBackground"/>
+
+                <ImageButton
+                    android:id="@+id/btnDelete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_delete"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_marginStart="8dp"/>
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

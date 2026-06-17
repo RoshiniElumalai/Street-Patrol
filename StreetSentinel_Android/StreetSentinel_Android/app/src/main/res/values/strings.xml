@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StreetSentinel</string>
+    <string name="app_description">Your AI-powered personal safety guardian</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_emergency">Emergency Alerts</string>
+    <string name="notification_channel_emergency_desc">Critical safety emergencies that require immediate attention</string>
+
+    <string name="notification_channel_protection">Protection Status</string>
+    <string name="notification_channel_protection_desc">StreetSentinel protection status and monitoring</string>
+
+    <string name="notification_channel_location">Location Updates</string>
+    <string name="notification_channel_location_desc">Real-time GPS location tracking updates</string>
+
+    <string name="notification_channel_audio">Audio Alerts</string>
+    <string name="notification_channel_audio_desc">Alerts for detected distress sounds and threats</string>
+
+    <string name="notification_channel_general">General Alerts</string>
+    <string name="notification_channel_general_desc">General safety alerts and notifications</string>
+
+    <!-- Actions -->
+    <string name="action_i_am_safe">✓ I\'M SAFE</string>
+    <string name="action_send_location">📍 SEND LOCATION</string>
+    <string name="action_cancel">CANCEL</string>
+
+    <!-- Buttons -->
+    <string name="btn_start_walk">Start SafeWalk</string>
+    <string name="btn_end_walk">End SafeWalk</string>
+    <string name="btn_check_in">Check In</string>
+    <string name="btn_share_location">Share Location</string>
+    <string name="btn_sos">SOS</string>
+    <string name="btn_add_contact">Add Contact</string>
+    <string name="btn_edit">Edit</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_add_contact_title">Add Emergency Contact</string>
+    <string name="dialog_edit_contact_title">Edit Contact</string>
+    <string name="dialog_delete_contact_title">Delete Contact</string>
+    <string name="dialog_delete_contact_message">Are you sure you want to remove this contact?</string>
+
+    <!-- Prompts -->
+    <string name="prompt_enter_name">Enter contact name</string>
+    <string name="prompt_enter_phone">Enter phone number</string>
+    <string name="prompt_enter_email">Enter email (optional)</string>
+    <string name="prompt_enter_destination">Enter destination</string>
+
+    <!-- Messages -->
+    <string name="msg_permission_required">Permission required to enable this feature</string>
+    <string name="msg_protection_active">🛡 Protection Active</string>
+    <string name="msg_protection_inactive">Protection Inactive</string>
+    <string name="msg_location_sharing_active">📍 Location Sharing Active</string>
+    <string name="msg_no_contacts">No emergency contacts added yet</string>
+    <string name="msg_no_alerts">No alerts yet</string>
+    <string name="msg_contact_added">Contact added successfully</string>
+    <string name="msg_contact_updated">Contact updated</string>
+    <string name="msg_contact_deleted">Contact deleted</string>
+
+    <!-- Status -->
+    <string name="status_checking">Checking...</string>
+    <string name="status_ok">OK</string>
+    <string name="status_error">ERROR</string>
+    <string name="status_disabled">DISABLED</string>
+
+    <!-- Settings -->
+    <string name="setting_audio_detection">Audio Detection</string>
+    <string name="setting_location_tracking">Location Tracking</string>
+    <string name="setting_night_safety">Night Safety Mode</string>
+    <string name="setting_fake_call">Fake Call Feature</string>
+    <string name="setting_shake_detection">Shake Detection</string>
+    <string name="setting_whatsapp_notifications">WhatsApp Notifications</string>
+    <string name="setting_email_notifications">Email Notifications</string>
+    <string name="setting_sms_notifications">SMS Notifications</string>
+
+    <!-- About -->
+    <string name="about_version">Version</string>
+    <string name="about_copyright">© 2024 StreetSentinel. All rights reserved.</string>
+    <string name="about_privacy_policy">Privacy Policy</string>
+    <string name="about_terms_of_service">Terms of Service</string>
+
+    <!-- Errors -->
+    <string name="error_location_permission">Location permission required</string>
+    <string name="error_microphone_permission">Microphone permission required</string>
+    <string name="error_contacts_permission">Contacts permission required</string>
+    <string name="error_phone_permission">Phone permission required</string>
+    <string name="error_loading_data">Error loading data</string>
+    <string name="error_saving_data">Error saving data</string>
+
+    <!-- SafeWalk -->
+    <string name="safewalk_title">SafeWalk</string>
+    <string name="safewalk_start">Start your safe walk</string>
+    <string name="safewalk_active">SafeWalk Active</string>
+    <string name="safewalk_destination">Destination</string>
+    <string name="safewalk_distance">Distance</string>
+    <string name="safewalk_eta">ETA</string>
+    <string name="safewalk_checkin_time">Check-in Time (minutes)</string>
+    <string name="safewalk_arrived">You\'ve arrived!</string>
+    <string name="safewalk_no_checkin">No check-in received</string>
+
+    <!-- Alerts -->
+    <string name="alert_emergency">🚨 Emergency Alert</string>
+    <string name="alert_possible_emergency">⚠ Possible Emergency Detected</string>
+    <string name="alert_audio_detected">🔊 Audio Threat Detected</string>
+    <string name="alert_are_you_safe">Are you safe?</string>
+    <string name="alert_location_sent">Location sent to emergency contacts</string>
+
+    <!-- Audio Levels -->
+    <string name="audio_level_quiet">Quiet</string>
+    <string name="audio_level_normal">Normal</string>
+    <string name="audio_level_loud">Loud</string>
+    <string name="audio_level_very_loud">Very Loud</string>
+
+    <!-- Time -->
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes_ago">minutes ago</string>
+    <string name="time_hours_ago">hours ago</string>
+    <string name="time_days_ago">days ago</string>
+    <!-- API Keys -->
+    <string name="google_maps_api_key">YOUR_GOOGLE_MAPS_KEY</string>
+</resources>

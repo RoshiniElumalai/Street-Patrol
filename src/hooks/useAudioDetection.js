@@ -6,6 +6,7 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
   const [audioConfidence, setAudioConfidence] = useState(0);
   const [audioContextState, setAudioContextState] = useState('UNINITIALIZED');
   const [micPermission, setMicPermission] = useState('PENDING');
+  const [analyserNode, setAnalyserNode] = useState(null);
   
   // Calibration
   const [isCalibrating, setIsCalibrating] = useState(false);
@@ -17,15 +18,21 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
   const microphoneRef = useRef(null);
   const animationFrameRef = useRef(null);
   const recognitionRef = useRef(null);
+  const calibrateIntervalRef = useRef(null);
+  const isMonitoringRef = useRef(isMonitoring);
+
+  useEffect(() => {
+    isMonitoringRef.current = isMonitoring;
+  }, [isMonitoring]);
 
   // List of AI distress detection labels as per Master Vision Prompt
   const threatLabels = [
-    'Screaming',
-    'Woman Distress',
-    'Fear Cry',
-    'Panic Voice',
+    'Scream',
+    'Help',
+    'Save Me',
+    'Distress',
+    'Fear',
     'Shouting',
-    'Violent Argument',
     'Glass Breaking'
   ];
 
@@ -83,6 +90,12 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
       };
 
       recognitionRef.current = recognition;
+
+      return () => {
+        try {
+          recognition.stop();
+        } catch (e) {}
+      };
     }
   }, [onThreatDetected, isMonitoring]);
 
@@ -117,6 +130,7 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
       
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256; // Smaller size for fast dB reads
+      setAnalyserNode(analyserRef.current);
       
       microphoneRef.current = audioContextRef.current.createMediaStreamSource(stream);
       microphoneRef.current.connect(analyserRef.current);
@@ -145,7 +159,7 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
     const dbSamples = [];
     let progress = 0;
 
-    const calibrateInterval = setInterval(() => {
+    calibrateIntervalRef.current = setInterval(() => {
       progress += 25;
       setCalibrationProgress(progress);
 
@@ -165,25 +179,30 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
       }
 
       if (progress >= 100) {
-        clearInterval(calibrateInterval);
+        clearInterval(calibrateIntervalRef.current);
         setIsCalibrating(false);
         const avgDb = dbSamples.reduce((a, b) => a + b, 0) / dbSamples.length;
         setBaselineDb(avgDb > -100 ? Math.round(avgDb) : -50);
         console.log("Calibration complete. Baseline DB:", avgDb);
-        detectLoudness(); // Start actual monitoring
+        if (isMonitoringRef.current) {
+          detectLoudness(); // Start actual monitoring
+        }
       }
     }, 500); // 2 seconds calibration
   };
 
   const detectLoudness = () => {
-    if (!analyserRef.current || !isMonitoring) {
+    if (!analyserRef.current || !isMonitoringRef.current) {
       if (animationFrameRef.current) clearInterval(animationFrameRef.current);
       return;
     }
 
     // Interval to calculate dB level every 150ms
     animationFrameRef.current = setInterval(() => {
-      if (!analyserRef.current) return;
+      if (!analyserRef.current || !isMonitoringRef.current) {
+        clearInterval(animationFrameRef.current);
+        return;
+      }
       
       const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
       analyserRef.current.getByteTimeDomainData(dataArray);
@@ -203,8 +222,13 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
       db = Math.max(-100, Math.min(0, db));
       setDecibels(Math.round(db));
 
-      // Threshold: 30dB spike above baseline, or absolute -15dB
-      const isSpike = db > (baselineDb + 30) || db > -15;
+      // Threshold: 30dB spike above baseline (20dB at night), or absolute -15dB (-25dB at night)
+      const hour = new Date().getHours();
+      const isNight = hour >= 20 || hour < 6;
+      const thresholdSpike = isNight ? 20 : 30;
+      const thresholdAbsolute = isNight ? -25 : -15;
+
+      const isSpike = db > (baselineDb + thresholdSpike) || db > thresholdAbsolute;
 
       if (isSpike) {
         // AI detection simulation from Master Vision lists
@@ -231,6 +255,8 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
 
   const stopMonitoring = () => {
     if (animationFrameRef.current) clearInterval(animationFrameRef.current);
+    if (calibrateIntervalRef.current) clearInterval(calibrateIntervalRef.current);
+    setIsCalibrating(false);
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -243,6 +269,7 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
     setDecibels(-100);
     setDetectedSound('NONE');
     setAudioConfidence(0);
+    setAnalyserNode(null);
   };
 
   return { 
@@ -253,6 +280,7 @@ export const useAudioDetection = (isMonitoring, onThreatDetected) => {
     calibrationProgress, 
     baselineDb, 
     micPermission, 
-    audioContextState 
+    audioContextState,
+    analyserNode
   };
 };

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/homeFragment"
+        android:title="Home"
+        android:icon="@android:drawable/ic_menu_today" />
+    <item
+        android:id="@+id/safeWalkFragment"
+        android:title="SafeWalk"
+        android:icon="@android:drawable/ic_menu_directions" />
+    <item
+        android:id="@+id/sosFragment"
+        android:title="SOS"
+        android:icon="@android:drawable/ic_menu_call" />
+    <item
+        android:id="@+id/alertsFragment"
+        android:title="Alerts"
+        android:icon="@android:drawable/ic_dialog_alert" />
+    <item
+        android:id="@+id/profileFragment"
+        android:title="Profile"
+        android:icon="@android:drawable/ic_menu_myplaces" />
+</menu>

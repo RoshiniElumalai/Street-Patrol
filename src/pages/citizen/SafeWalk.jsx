@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Navigation, MapPin, Clock, Zap, Shield, ChevronRight, Loader } from 'lucide-react';
 import LiveMap from '../../components/map/LiveMap';
 import { useStore } from '../../context/useStore';
@@ -9,7 +9,20 @@ import { geocodeAddress, getRoute, calculateDistance } from '../../utils/geo';
 
 const SafeWalk = () => {
   const { lastKnownLocation, triggerEmergency } = useStore();
-  const { currentLocation, routeCoords, isActive, startTracking, stopTracking, distanceKm, etaMinutes } = useSafeWalkMonitor();
+  const { 
+    currentLocation, 
+    routeCoords, 
+    isActive, 
+    startTracking, 
+    stopTracking, 
+    distanceKm, 
+    etaMinutes,
+    checkInTimeLeft,
+    showCheckInPrompt,
+    checkInCountdown,
+    confirmSafety
+  } = useSafeWalkMonitor();
+  
   const [destination, setDestination] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -18,6 +31,7 @@ const SafeWalk = () => {
   const [routeInfo, setRouteInfo] = useState(null);
   const [routeMode, setRouteMode] = useState('fastest');
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [selectedTimer, setSelectedTimer] = useState(5); // In minutes
   const searchTimeout = useRef(null);
 
   const userLoc = lastKnownLocation || currentLocation;
@@ -51,11 +65,11 @@ const SafeWalk = () => {
       try {
         const routeData = await getRoute(userLoc.lat, userLoc.lng, dest.lat, dest.lng);
         if (routeData) setRealRouteCoords(routeData.coordinates);
-        const dist = calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng);
-        setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist / 0.083), safetyScore: Math.round(80 + Math.random() * 15) });
+        const dist = routeData ? (routeData.distance / 1000) : (calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng) / 1000);
+        setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist * 12), safetyScore: Math.round(80 + Math.random() * 15) });
       } catch (e) {
-        const dist = calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng);
-        setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist / 0.083), safetyScore: 82 });
+        const dist = calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng) / 1000;
+        setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist * 12), safetyScore: 82 });
       }
       setIsLoadingRoute(false);
     }
@@ -71,15 +85,18 @@ const SafeWalk = () => {
         try {
           const routeData = await getRoute(userLoc.lat, userLoc.lng, dest.lat, dest.lng);
           if (routeData) setRealRouteCoords(routeData.coordinates);
-          const dist = calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng);
-          setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist / 0.083), safetyScore: 82 });
-        } catch (e) {}
+          const dist = routeData ? (routeData.distance / 1000) : (calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng) / 1000);
+          setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist * 12), safetyScore: 82 });
+        } catch (e) {
+          const dist = calculateDistance(userLoc.lat, userLoc.lng, dest.lat, dest.lng) / 1000;
+          setRouteInfo({ distance: dist.toFixed(2), eta: Math.round(dist * 12), safetyScore: 82 });
+        }
         setIsLoadingRoute(false);
       }
     }
   };
 
-  const handleStart = () => { destination && startTracking(destination); };
+  const handleStart = () => { destination && startTracking(destination, selectedTimer); };
   const handleStop = () => { stopTracking(); setRealRouteCoords([]); setRouteInfo(null); };
 
   const allMarkers = [
@@ -191,15 +208,33 @@ const SafeWalk = () => {
       {/* Bottom Action */}
       <div className="bg-white border-t border-slate-100 p-4">
         {!isActive ? (
-          <button onClick={handleStart} disabled={!destination}
-            className={`w-full py-4 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-3 ${
-              destination
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-400/30 hover:bg-blue-700 active:scale-[0.98]'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-            }`}>
-            <Navigation size={20} />
-            {destination ? 'Start SafeWalk' : 'Select a destination'}
-          </button>
+          <div className="space-y-3">
+            {destination && (
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <span className="text-slate-600 font-bold text-xs">Safety Check-In Interval:</span>
+                <select 
+                  value={selectedTimer} 
+                  onChange={e => setSelectedTimer(parseFloat(e.target.value))}
+                  className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value={0.166}>10 seconds (Test)</option>
+                  <option value={1}>1 minute</option>
+                  <option value={5}>5 minutes</option>
+                  <option value={10}>10 minutes</option>
+                  <option value={30}>30 minutes</option>
+                </select>
+              </div>
+            )}
+            <button onClick={handleStart} disabled={!destination}
+              className={`w-full py-4 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-3 ${
+                destination
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-400/30 hover:bg-blue-700 active:scale-[0.98]'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              }`}>
+              <Navigation size={20} />
+              {destination ? 'Start SafeWalk' : 'Select a destination'}
+            </button>
+          </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between bg-blue-50 rounded-2xl p-3 border border-blue-100">
@@ -207,7 +242,14 @@ const SafeWalk = () => {
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />
                 <span className="text-blue-700 font-bold text-sm">SafeWalk Active</span>
               </div>
-              <span className="text-blue-600 font-black">{distanceKm?.toFixed(2) || '0.00'} km</span>
+              <div className="text-right">
+                <span className="text-blue-600 font-black block text-sm">{distanceKm?.toFixed(2) || '0.00'} km</span>
+                {checkInTimeLeft !== null && (
+                  <span className="text-blue-500 font-mono text-xs font-bold">
+                    Check-in in: {Math.floor(checkInTimeLeft / 60)}:{(checkInTimeLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex gap-3">
               <button onClick={() => triggerEmergency('SafeWalk SOS')}
@@ -222,6 +264,39 @@ const SafeWalk = () => {
           </div>
         )}
       </div>
+
+      {/* Check-In Confirmation Dialog */}
+      <AnimatePresence>
+        {showCheckInPrompt && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border-2 border-red-500 rounded-3xl p-6 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
+            >
+              <Shield className="text-red-500 mx-auto mb-4 animate-pulse" size={56} />
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
+                Have you arrived safely?
+              </h2>
+              <p className="text-slate-300 text-sm mb-6">
+                Please confirm your safety. Emergency alert will trigger in <span className="text-red-400 font-black text-lg">{checkInCountdown}s</span>.
+              </p>
+              <button 
+                onClick={() => confirmSafety(selectedTimer)}
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-lg transition-colors uppercase tracking-wider text-base"
+              >
+                ✓ I'm Safe
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

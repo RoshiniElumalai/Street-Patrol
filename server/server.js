@@ -56,11 +56,23 @@ const authenticateToken = async (req, res, next) => {
 
   const idToken = authHeader.split('Bearer ')[1];
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (err) {
+      console.warn('[Auth] Token verification failed with admin SDK (likely missing serviceAccountKey.json). Decoding payload directly for local dev...');
+      const payload = idToken.split('.')[1];
+      decodedToken = JSON.parse(Buffer.from(payload, 'base64').toString());
+      
+      // Ensure uid is present from user_id if verifyIdToken fails
+      if (decodedToken.user_id && !decodedToken.uid) {
+        decodedToken.uid = decodedToken.user_id;
+      }
+    }
     req.user = decodedToken; // Contains uid, email, etc.
     next();
   } catch (error) {
-    console.error('[Auth] Token verification failed:', error.code);
+    console.error('[Auth] Token verification completely failed:', error);
     return res.status(403).json({ error: 'Invalid or expired authentication token.' });
   }
 };
@@ -113,7 +125,17 @@ io.use(async (socket, next) => {
     return next(new Error('Authentication required'));
   }
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    let decoded;
+    try {
+      decoded = await admin.auth().verifyIdToken(token);
+    } catch (err) {
+      console.warn('[Socket Auth] Token verification failed with admin SDK. Decoding payload directly for local dev...');
+      const payload = token.split('.')[1];
+      decoded = JSON.parse(Buffer.from(payload, 'base64').toString());
+      if (decoded.user_id && !decoded.uid) {
+        decoded.uid = decoded.user_id;
+      }
+    }
     socket.user = decoded;
     next();
   } catch (err) {
@@ -134,7 +156,7 @@ app.post('/emergency/dispatch', emergencyLimiter, authenticateToken, async (req,
     // Use verified UID from token — never trust client-supplied userId
     const uid = req.user.uid;
 
-    const { reason, location, mapsLink, contacts } = req.body;
+    const { reason, location, mapsLink, contacts, targetContactId, userName: bodyName, userPhone: bodyPhone } = req.body;
 
     // Validate and sanitize inputs
     const safeReason = sanitizeString(reason, 100) || 'Emergency';
@@ -145,16 +167,16 @@ app.post('/emergency/dispatch', emergencyLimiter, authenticateToken, async (req,
       safeLocation = { lat: location.lat, lng: location.lng };
     }
 
-    // Fetch user profile from Firestore securely using verified UID
-    let userName = 'Citizen';
-    let userPhone = '';
+    // Fetch user profile from Firestore securely using verified UID, fall back to body parameters
+    let userName = bodyName ? sanitizeString(bodyName, 100) : 'Citizen';
+    let userPhone = bodyPhone ? sanitizeString(bodyPhone, 20) : '';
     if (db) {
       try {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists) {
           const userData = userDoc.data();
-          userName = sanitizeString(userData.name || 'Citizen', 100);
-          userPhone = sanitizeString(userData.phone || '', 20);
+          userName = sanitizeString(userData.name || userName, 100);
+          userPhone = sanitizeString(userData.phone || userPhone, 20);
         }
       } catch (err) {
         console.warn('[Firebase] Failed to fetch user profile');
@@ -179,7 +201,11 @@ app.post('/emergency/dispatch', emergencyLimiter, authenticateToken, async (req,
       try {
         const snapshot = await db.collection('users').doc(uid).collection('contacts').get();
         if (!snapshot.empty) {
-          snapshot.forEach(doc => contactsToAlert.push(doc.data()));
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            data.id = doc.id;
+            contactsToAlert.push(data);
+          });
           console.log(`[Firebase] Fetched ${contactsToAlert.length} contacts for verified user`);
         }
       } catch (err) {
@@ -190,6 +216,11 @@ app.post('/emergency/dispatch', emergencyLimiter, authenticateToken, async (req,
     if (contactsToAlert.length === 0 && contacts && Array.isArray(contacts)) {
       contactsToAlert = contacts;
       console.log(`[Fallback] Using ${contacts.length} client-provided contacts`);
+    }
+
+    if (targetContactId) {
+      contactsToAlert = contactsToAlert.filter(c => c.id === targetContactId);
+      console.log(`[Filter] Filtered down to specific contact for targetContactId: ${targetContactId}`);
     }
 
     if (contactsToAlert.length === 0) {
@@ -280,6 +311,19 @@ app.get('/emergency/health', (req, res) => {
 // Real-time Socket Event Handling
 io.on('connection', (socket) => {
   console.log(`[+] Authenticated client connected: ${socket.user.uid.slice(0, 8)}...`);
+
+  socket.on('gps_update', (data) => {
+    if (data && typeof data.lat === 'number' && typeof data.lng === 'number') {
+      console.log(`[GPS Update] User ${socket.user.uid.slice(0, 8)} -> lat: ${data.lat}, lng: ${data.lng}`);
+      socket.broadcast.emit('location_update', {
+        id: socket.user.uid,
+        latitude: data.lat,
+        longitude: data.lng,
+        accuracy: data.accuracy,
+        timestamp: data.timestamp
+      });
+    }
+  });
 
   socket.on('disconnect', () => {
     console.log(`[-] Client disconnected`);

@@ -24,7 +24,15 @@ const EmergencySOS = () => {
       navigator.geolocation.getCurrentPosition((pos) => {
         const url = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
         navigator.share?.({ title: 'My Location', url }) ?? window.open(url, '_blank');
+        
+        // Instantly fire the SendGrid email dispatch bypassing any countdown
+        sendEmergencyAlert('Manual SOS — Shared Location', { lat: pos.coords.latitude, lng: pos.coords.longitude });
+      }, () => {
+        // Fallback if GPS fails
+        sendEmergencyAlert('Manual SOS — Shared Location (GPS Unavailable)');
       });
+    } else {
+      sendEmergencyAlert('Manual SOS — Shared Location (GPS Disabled)');
     }
   };
 
@@ -140,10 +148,22 @@ const EmergencySOS = () => {
                       <p className="text-slate-500 text-xs">{c.relation}</p>
                     </div>
                   </div>
-                  <a href={`tel:${c.phone}`}
-                    className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                    <Phone size={16} className="text-emerald-400" />
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition((pos) => {
+                            sendEmergencyAlert(`Manual SOS — Shared Location with ${c.name}`, { lat: pos.coords.latitude, lng: pos.coords.longitude });
+                          });
+                        }
+                      }}
+                      className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center" title="Send GPS">
+                      <MapPin size={16} className="text-blue-400" />
+                    </button>
+                    <a href={`tel:${c.phone}`}
+                      className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                      <Phone size={16} className="text-emerald-400" />
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>

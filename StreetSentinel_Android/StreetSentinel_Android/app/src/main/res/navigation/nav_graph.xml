@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.streetsentinel.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_sos"
+            app:destination="@id/sosFragment" />
+        <action
+            android:id="@+id/action_home_to_safeWalk"
+            app:destination="@id/safeWalkFragment" />
+        <action
+            android:id="@+id/action_home_to_nearbySafety"
+            app:destination="@id/nearbySafetyFragment" />
+        <action
+            android:id="@+id/action_home_to_evidenceVault"
+            app:destination="@id/evidenceVaultFragment" />
+        <action
+            android:id="@+id/action_home_to_systemHealth"
+            app:destination="@id/systemHealthFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/safeWalkFragment"
+        android:name="com.streetsentinel.ui.safewalk.SafeWalkFragment"
+        android:label="SafeWalk"
+        tools:layout="@layout/fragment_safe_walk" />
+
+    <fragment
+        android:id="@+id/sosFragment"
+        android:name="com.streetsentinel.ui.sos.SOSFragment"
+        android:label="SOS"
+        tools:layout="@layout/fragment_sos" />
+
+    <fragment
+        android:id="@+id/alertsFragment"
+        android:name="com.streetsentinel.ui.alerts.AlertsFragment"
+        android:label="Alerts"
+        tools:layout="@layout/fragment_alerts" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.streetsentinel.ui.profile.ProfileFragment"
+        android:label="Profile" />
+
+    <fragment
+        android:id="@+id/nearbySafetyFragment"
+        android:name="com.streetsentinel.ui.nearbysafety.NearbySafetyFragment"
+        android:label="Nearby Safety" />
+
+    <fragment
+        android:id="@+id/evidenceVaultFragment"
+        android:name="com.streetsentinel.ui.evidencevault.EvidenceVaultFragment"
+        android:label="Evidence Vault" />
+
+    <fragment
+        android:id="@+id/systemHealthFragment"
+        android:name="com.streetsentinel.ui.systemhealth.SystemHealthFragment"
+        android:label="System Health" />
+
+    <fragment
+        android:id="@+id/contactsFragment"
+        android:name="com.streetsentinel.ui.contacts.ContactsFragment"
+        android:label="Contacts"
+        tools:layout="@layout/fragment_contacts" />
+
+</navigation>

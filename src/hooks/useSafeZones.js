@@ -16,6 +16,8 @@ export const useSafeZones = (location, radius = 5000) => {
             node["amenity"="police"](around:${radius},${location.lat},${location.lng});
             node["amenity"="hospital"](around:${radius},${location.lat},${location.lng});
             node["amenity"="clinic"](around:${radius},${location.lat},${location.lng});
+            node["amenity"="pharmacy"](around:${radius},${location.lat},${location.lng});
+            node["social_facility"="womens_shelter"](around:${radius},${location.lat},${location.lng});
           );
           out body;
         `;
@@ -25,13 +27,21 @@ export const useSafeZones = (location, radius = 5000) => {
         });
         const data = await response.json();
         
-        const markers = data.elements.map(el => ({
-          lat: el.lat,
-          lng: el.lon,
-          type: el.tags.amenity,
-          name: el.tags.name || 'Unknown',
-          color: el.tags.amenity === 'police' ? '#3b82f6' : '#10b981' // blue for police, green for hospital
-        }));
+        const markers = data.elements.map(el => {
+          const type = el.tags.amenity || el.tags.social_facility || 'safety_center';
+          let color = '#3b82f6'; // Police default
+          if (type === 'hospital' || type === 'clinic') color = '#10b981';
+          else if (type === 'pharmacy') color = '#34d399';
+          else if (type === 'womens_shelter') color = '#ec4899';
+          
+          return {
+            lat: el.lat,
+            lng: el.lon,
+            type: type,
+            name: el.tags.name || 'Safety Hub',
+            color: color
+          };
+        });
         
         setSafeZones(markers);
       } catch (error) {

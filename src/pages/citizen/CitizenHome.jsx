@@ -11,6 +11,10 @@ import { useStore } from '../../context/useStore';
 import { useHardwareTriggers } from '../../hooks/useHardwareTriggers';
 import { useSafeZones } from '../../hooks/useSafeZones';
 
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+const BackgroundProtection = registerPlugin('BackgroundProtection');
+
 const CitizenHome = () => {
   const navigate = useNavigate();
   const [isProtectionActive, setIsProtectionActive] = useState(false);
@@ -37,7 +41,7 @@ const CitizenHome = () => {
     alertHistory,
   } = useStore();
 
-  const { isListening, setIsListening, micPermission } = useHardwareTriggers();
+  const { isListening, setIsListening, micPermission, analyserNode } = useHardwareTriggers();
   const { safeZones } = useSafeZones(lastKnownLocation, 3000);
   const policeCount = safeZones.filter(z => z.type === 'police').length;
   const safetyScore = Math.round((1 - riskScore) * 100);
@@ -55,10 +59,22 @@ const CitizenHome = () => {
     }
   }, []);
 
-  const toggleProtection = () => {
+  const toggleProtection = async () => {
     const next = !isProtectionActive;
     setIsProtectionActive(next);
     setIsListening(next);
+    
+    if (Capacitor.isNativePlatform()) {
+      try {
+        if (next) {
+          await BackgroundProtection.startBackgroundService();
+        } else {
+          await BackgroundProtection.stopBackgroundService();
+        }
+      } catch (err) {
+        console.warn("Failed to toggle native background service:", err);
+      }
+    }
   };
 
   const handleSendNow = () => {
@@ -143,14 +159,20 @@ const CitizenHome = () => {
           <p className="text-white text-sm font-semibold leading-snug">{aiMessage}</p>
         </div>
 
+        {/* Waveform Visualizer */}
+        {isProtectionActive && (
+          <WaveformVisualizer analyserNode={analyserNode} isActive={isListening} />
+        )}
+
         {/* Live Status Pills */}
         <div className="flex gap-2 mt-3 flex-wrap">
           <StatusPill icon={isProtectionActive ? Mic : MicOff}
             label={isProtectionActive ? `${Math.round(audioLevel)} dB` : 'MIC OFF'}
-            active={isProtectionActive && isListening} />
-          <StatusPill icon={MapPin} label={gpsActive ? 'GPS Active' : 'GPS Off'} active={gpsActive} />
-          <StatusPill icon={Wifi} label={isSocketConnected ? 'Online' : 'Offline'} active={isSocketConnected} />
-          {battery !== null && <StatusPill icon={Battery} label={`${battery}%`} active={battery > 20} warning={battery <= 20} />}
+            active={isProtectionActive && isListening}
+            onClick={() => navigate('/citizen/health')} />
+          <StatusPill icon={MapPin} label={gpsActive ? 'GPS Active' : 'GPS Off'} active={gpsActive} onClick={() => navigate('/citizen/health')} />
+          <StatusPill icon={Wifi} label={isSocketConnected ? 'Online' : 'Offline'} active={isSocketConnected} onClick={() => navigate('/citizen/health')} />
+          {battery !== null && <StatusPill icon={Battery} label={`${battery}%`} active={battery > 20} warning={battery <= 20} onClick={() => navigate('/citizen/health')} />}
         </div>
       </div>
 
@@ -257,39 +279,6 @@ const CitizenHome = () => {
         </div>
       </div>
 
-      {/* ─── EMERGENCY COUNTDOWN MODAL ─── */}
-      <AnimatePresence>
-        {countdown !== null && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.8, y: 40 }} animate={{ scale: 1, y: 0 }}
-              className="bg-white max-w-sm w-full rounded-3xl overflow-hidden shadow-2xl">
-              <div className="h-2 bg-red-500 animate-pulse" />
-              <div className="p-8 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-5">
-                  <AlertTriangle size={40} className="text-red-500" />
-                </div>
-                <h2 className="text-2xl font-black text-slate-800 mb-2">Emergency Detected</h2>
-                <p className="text-slate-500 font-medium mb-6 text-sm">
-                  {emergencyData?.reason || 'Distress detected. Alert will be sent automatically.'}
-                </p>
-                <div className="text-8xl font-black text-red-500 mb-8 tabular-nums leading-none">{countdown}</div>
-                <div className="flex w-full gap-3">
-                  <button onClick={cancelEmergency}
-                    className="flex-1 py-4 bg-slate-100 text-slate-700 font-black rounded-2xl text-sm hover:bg-slate-200 transition-colors">
-                    I'M SAFE
-                  </button>
-                  <button onClick={handleSendNow}
-                    className="flex-1 py-4 bg-red-500 text-white font-black rounded-2xl text-sm shadow-lg shadow-red-400/40 hover:bg-red-600 transition-colors">
-                    SEND NOW
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* ─── FAKE CALL OVERLAY ─── */}
       <AnimatePresence>
         {showFakeCall && (
@@ -326,15 +315,92 @@ const CitizenHome = () => {
   );
 };
 
-const StatusPill = ({ icon: Icon, label, active, warning }) => (
-  <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold ${
+const StatusPill = ({ icon: Icon, label, active, warning, onClick }) => (
+  <button onClick={onClick} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95 hover:bg-white/25 ${
     warning ? 'bg-red-500/30 text-red-200' :
     active  ? 'bg-white/15 text-white' :
               'bg-white/8 text-slate-400'
   }`}>
     <Icon size={11} /> {label}
-  </div>
+  </button>
 );
+
+const WaveformVisualizer = ({ analyserNode, isActive }) => {
+  const canvasRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!isActive || !analyserNode) {
+      // Draw flatline
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    let animationId;
+    const draw = () => {
+      animationId = requestAnimationFrame(draw);
+      analyserNode.getByteTimeDomainData(dataArray);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; // semi-transparent background trail
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgb(239, 68, 68)'; // Crimson active line
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgb(239, 68, 68)';
+
+      ctx.beginPath();
+      const sliceWidth = canvas.width / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * canvas.height) / 2;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0; // Reset shadow
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
+  }, [analyserNode, isActive]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="w-full h-16 bg-slate-900/60 border border-white/10 rounded-2xl overflow-hidden mt-3 shadow-inner"
+      width={320}
+      height={64}
+    />
+  );
+};
 
 const ScoreCard = ({ value, label, color }) => (
   <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm text-center">

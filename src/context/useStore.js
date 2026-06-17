@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc, addDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
+import { io } from 'socket.io-client';
 
 export const speak = (text) => {
   if ('speechSynthesis' in window) {
@@ -42,6 +43,7 @@ export const useStore = create((set, get) => {
       
       // Setup real-time listeners for this user (subcollections)
       get().setupListeners(user.uid);
+      get().initSocket(user);
 
       // Listen to user document in real-time to solve race conditions during Signup
       unsubUser = onSnapshot(userRef, (userSnap) => {
@@ -57,6 +59,7 @@ export const useStore = create((set, get) => {
       });
 
     } else {
+      get().disconnectSocket();
       set({ currentUser: null, contacts: [], alertHistory: [] });
       if (unsubUser) unsubUser();
       if (unsubContacts) unsubContacts();
@@ -75,6 +78,48 @@ export const useStore = create((set, get) => {
       notifications: true,
       emailAlerts: true,
       whatsappAlerts: true,
+    },
+    socket: null,
+    isSocketConnected: false,
+
+    initSocket: async (user) => {
+      const existingSocket = get().socket;
+      if (existingSocket) {
+        existingSocket.disconnect();
+      }
+
+      try {
+        const token = await user.getIdToken();
+        const socket = io(backendUrl, {
+          auth: { token },
+          transports: ['websocket', 'polling']
+        });
+
+        socket.on('connect', () => {
+          set({ isSocketConnected: true });
+        });
+
+        socket.on('disconnect', () => {
+          set({ isSocketConnected: false });
+        });
+
+        socket.on('connect_error', (err) => {
+          console.warn("Socket connection error:", err.message);
+          set({ isSocketConnected: false });
+        });
+
+        set({ socket });
+      } catch (err) {
+        console.error("Failed to initialize socket:", err);
+      }
+    },
+
+    disconnectSocket: () => {
+      const existingSocket = get().socket;
+      if (existingSocket) {
+        existingSocket.disconnect();
+      }
+      set({ socket: null, isSocketConnected: false });
     },
 
     setupListeners: (uid) => {
@@ -209,7 +254,7 @@ export const useStore = create((set, get) => {
       set({
         threatLevel: 'CRITICAL',
         aiMessage: 'We detected a possible distress situation. Would you like to share your live location with your emergency contacts?',
-        countdown: 10
+        countdown: 15
       });
       safeSpeak('Potential Emergency Detected.');
 
@@ -245,18 +290,19 @@ export const useStore = create((set, get) => {
       set({ countdownTimer: timer });
     },
 
-    sendEmergencyAlert: async (reason = "Manual SOS Override", forceLocation = null, audioLabel = null, audioConfidence = null) => {
+    sendEmergencyAlert: async (reason = "Manual SOS Override", forceLocation = null, audioLabel = null, audioConfidence = null, targetContact = null) => {
       console.log("Emergency escalation started");
 
       const dispatch = async (coords) => {
         const uid = get().currentUser?.uid;
-        const locationUrl = coords ? `https://maps.google.com/?q=${coords.lat},${coords.lng}` : 'No location available';
+        const finalCoords = coords || get().lastKnownLocation || { lat: 12.9716, lng: 77.5946 };
+        const locationUrl = `https://maps.google.com/?q=${finalCoords.lat},${finalCoords.lng}`;
 
         const newAlert = {
           type: reason,
           timestamp: Date.now(),
           riskLevel: 'CRITICAL',
-          location: coords,
+          location: finalCoords,
           smsStatus: 'PENDING',
           emailStatus: 'PENDING',
           whatsappShared: true,
@@ -267,9 +313,13 @@ export const useStore = create((set, get) => {
 
         let alertId = null;
         if (uid) {
-          // Write directly to Firestore
-          const alertRef = await addDoc(collection(db, 'users', uid, 'alerts'), newAlert);
-          alertId = alertRef.id;
+          try {
+            // Write directly to Firestore
+            const alertRef = await addDoc(collection(db, 'users', uid, 'alerts'), newAlert);
+            alertId = alertRef.id;
+          } catch (err) {
+            console.warn("Failed to write emergency alert to Firestore:", err);
+          }
         }
 
         set({
@@ -297,7 +347,10 @@ export const useStore = create((set, get) => {
               reason,
               location: coords,
               mapsLink: locationUrl,
-              contacts: get().contacts
+              contacts: targetContact ? [targetContact] : get().contacts,
+              targetContactId: targetContact?.id || null,
+              userName: get().currentUser?.name || 'Citizen',
+              userPhone: get().currentUser?.phone || ''
             })
           });
           const data = await res.json();
@@ -316,22 +369,32 @@ export const useStore = create((set, get) => {
           console.error("Backend dispatch failed", e);
         }
 
-        const userName = get().currentUser?.name || 'Citizen';
-        const whatsappMsg = `🚨 STREETSENTINEL ALERT\n\n${userName} may be unsafe.\n\nLive Location:\n${locationUrl}\n\nPlease contact immediately.`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+        try {
+          const userName = get().currentUser?.name || 'Citizen';
+          const whatsappMsg = `🚨 STREETSENTINEL ALERT\n\n${userName} may be unsafe.\n\nLive Location:\n${locationUrl}\n\nPlease contact immediately.`;
+          window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+        } catch (err) {
+          console.warn("Failed to open WhatsApp window (popup probably blocked):", err);
+        }
       };
 
       if (forceLocation) {
         dispatch(forceLocation);
       } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            dispatch({ lat: position.coords.latitude, lng: position.coords.longitude });
-          },
-          (err) => {
-            dispatch(get().lastKnownLocation);
-          }
-        );
+        try {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              dispatch({ lat: position.coords.latitude, lng: position.coords.longitude });
+            },
+            (err) => {
+              dispatch(get().lastKnownLocation);
+            },
+            { timeout: 3000, enableHighAccuracy: true }
+          );
+        } catch (err) {
+          console.warn("Geolocation query failed synchronously:", err);
+          dispatch(get().lastKnownLocation);
+        }
       } else {
         dispatch(get().lastKnownLocation);
       }
@@ -355,3 +418,7 @@ export const useStore = create((set, get) => {
     }
   };
 });
+
+if (typeof window !== 'undefined') {
+  window.useStore = useStore;
+}
