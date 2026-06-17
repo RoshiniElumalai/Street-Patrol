@@ -115,5 +115,7 @@ jobs:
             echo "No changes in report — skipping commit."
           else
             git commit -m "ci: auto-update ECE E2E test report [run #${{ github.run_number }}] [skip ci]"
-            git push
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }}
           fi
+
