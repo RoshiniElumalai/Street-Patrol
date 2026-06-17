@@ -58,8 +58,9 @@ jobs:
           else
             git commit -m "ci: auto-update Security Test reports [run #${{ github.run_number }}] [skip ci]"
             for i in {1..5}; do
-              git pull --rebase origin ${{ github.ref_name }} && git push origin ${{ github.ref_name }} && exit 0 || sleep 5
+              git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }} && exit 0 || sleep 5
             done
+
             exit 1
           fi
 
