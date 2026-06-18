@@ -155,8 +155,8 @@ async function runEmergencyTests() {
     console.log("\n--- TEST 3: Triggering overlay and letting the countdown expire ---");
     
     await driver.executeScript("window.useStore.getState().triggerEmergency('Simulated Audio Distress 3');");
-    console.log("Countdown started. Waiting 12 seconds for auto-dispatch...");
-    await driver.sleep(12000); // Wait for countdown to run out (10s + padding)
+    console.log("Countdown started. Waiting 18 seconds for auto-dispatch...");
+    await driver.sleep(18000); // Wait for countdown to run out (15s + padding)
 
     isEmergencyModeActive = await driver.executeScript("return window.useStore.getState().isEmergencyMode;");
     emergencyHeader = await driver.findElements(By.xpath("//*[contains(text(), 'EMERGENCY MODE ACTIVATED')]"));

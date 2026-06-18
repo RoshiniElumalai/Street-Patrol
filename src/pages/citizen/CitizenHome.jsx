@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, ShieldAlert, ShieldCheck, Navigation, PhoneCall, AlertTriangle,
   Battery, Wifi, Activity, MapPin, Users, Eye, Settings, Mic, MicOff,
-  Bell, Clock, BellOff
+  Bell, Clock, BellOff, X, Phone
 } from 'lucide-react';
 import LiveMap from '../../components/map/LiveMap';
 import { useStore } from '../../context/useStore';
 import { useHardwareTriggers } from '../../hooks/useHardwareTriggers';
 import { useSafeZones } from '../../hooks/useSafeZones';
+import { calculateDistance } from '../../utils/geo';
 
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
@@ -19,6 +20,7 @@ const CitizenHome = () => {
   const navigate = useNavigate();
   const [isProtectionActive, setIsProtectionActive] = useState(false);
   const [showFakeCall, setShowFakeCall] = useState(false);
+  const [showSafeZonesModal, setShowSafeZonesModal] = useState(false);
   const [battery, setBattery] = useState(null);
 
   const {
@@ -182,7 +184,7 @@ const CitizenHome = () => {
         <div className="grid grid-cols-3 gap-3">
           <ScoreCard value={safetyScore} label="Safety Score"
             color={safetyScore > 80 ? 'text-emerald-500' : safetyScore > 50 ? 'text-amber-500' : 'text-red-500'} />
-          <ScoreCard value={policeCount > 0 ? policeCount : '?'} label="Police Nearby" color="text-blue-500" />
+          <ScoreCard value={policeCount > 0 ? policeCount : '?'} label="Police Nearby" color="text-blue-500" onClick={() => setShowSafeZonesModal(true)} />
           <ScoreCard value={contacts.length} label="Guardians" color="text-purple-500" />
         </div>
 
@@ -311,15 +313,156 @@ const CitizenHome = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ─── SAFE ZONES DETAILS MODAL ─── */}
+      <AnimatePresence>
+        {showSafeZonesModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-end justify-center"
+            onClick={() => setShowSafeZonesModal(false)}
+          >
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white rounded-t-[32px] w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl border-t border-slate-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-4 animate-pulse" />
+              
+              <div className="px-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <Shield className="text-blue-500" size={20} />
+                    Nearby Safety Hubs
+                  </h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                    {safeZones.length} Secure Zones Identified
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowSafeZonesModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {safeZones.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 font-bold text-sm">
+                    <MapPin className="mx-auto mb-2 opacity-50" size={32} />
+                    <p>No safety zones found nearby</p>
+                  </div>
+                ) : (
+                  safeZones.map((zone, idx) => {
+                    const isPolice = zone.type === 'police';
+                    const isHospital = zone.type === 'hospital' || zone.type === 'clinic';
+                    const isPharmacy = zone.type === 'pharmacy';
+                    const isShelter = zone.type === 'womens_shelter';
+                    
+                    let typeLabel = 'Safety Center';
+                    let typeColor = 'bg-blue-50 text-blue-600 border-blue-100';
+                    let ZoneIcon = Shield;
+                    
+                    if (isPolice) {
+                      typeLabel = 'Police Station';
+                      typeColor = 'bg-blue-50 text-blue-600 border-blue-100';
+                      ZoneIcon = Shield;
+                    } else if (isHospital) {
+                      typeLabel = 'Medical Support';
+                      typeColor = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                      ZoneIcon = Activity;
+                    } else if (isPharmacy) {
+                      typeLabel = 'Pharmacy';
+                      typeColor = 'bg-teal-50 text-teal-600 border-teal-100';
+                      ZoneIcon = ShieldCheck;
+                    } else if (isShelter) {
+                      typeLabel = 'Women\'s Shelter';
+                      typeColor = 'bg-rose-50 text-rose-600 border-rose-100';
+                      ZoneIcon = Users;
+                    }
+
+                    const distStr = formatDistance(lastKnownLocation || { lat: 12.9716, lng: 77.5946 }, zone);
+
+                    return (
+                      <div key={idx} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className={`p-3 rounded-xl border flex-shrink-0 ${typeColor.split(' ')[0]} ${typeColor.split(' ')[2]}`}>
+                            <ZoneIcon size={20} className={typeColor.split(' ')[1]} />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-black text-slate-800 text-sm leading-snug truncate">{zone.name}</h3>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${typeColor}`}>
+                                {typeLabel}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400 flex items-center gap-0.5">
+                                <MapPin size={10} />
+                                {distStr}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button 
+                            onClick={() => {
+                              window.open(`tel:${isPolice ? '100' : isHospital ? '102' : '112'}`, '_self');
+                            }}
+                            className="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-100 flex items-center justify-center text-rose-600 transition-colors"
+                            title="Call Emergency"
+                          >
+                            <Phone size={15} />
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setShowSafeZonesModal(false);
+                              navigate('/citizen/tracking');
+                            }}
+                            className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white shadow-md transition-colors"
+                            title="Navigate"
+                          >
+                            <Navigation size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-5 bg-slate-50 border-t border-slate-100 text-center rounded-b-[32px]">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-normal">
+                  In extreme danger, tap the crimson SOS button directly.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+};
+
+const formatDistance = (fromLoc, toLoc) => {
+  if (!fromLoc || !toLoc) return 'Calculating...';
+  const distMeters = calculateDistance(fromLoc.lat, fromLoc.lng, toLoc.lat, toLoc.lng);
+  if (distMeters < 1000) {
+    return `${Math.round(distMeters)}m`;
+  }
+  return `${(distMeters / 1000).toFixed(1)} km`;
 };
 
 const StatusPill = ({ icon: Icon, label, active, warning, onClick }) => (
   <button onClick={onClick} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95 hover:bg-white/25 ${
     warning ? 'bg-red-500/30 text-red-200' :
     active  ? 'bg-white/15 text-white' :
-              'bg-white/8 text-slate-400'
+    'bg-white/8 text-slate-400'
   }`}>
     <Icon size={11} /> {label}
   </button>
@@ -402,11 +545,15 @@ const WaveformVisualizer = ({ analyserNode, isActive }) => {
   );
 };
 
-const ScoreCard = ({ value, label, color }) => (
-  <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm text-center">
+const ScoreCard = ({ value, label, color, onClick }) => (
+  <motion.div 
+    whileTap={onClick ? { scale: 0.95 } : {}}
+    onClick={onClick}
+    className={`bg-white rounded-2xl p-3 border border-slate-100 shadow-sm text-center ${onClick ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+  >
     <p className={`text-3xl font-black ${color}`}>{value}</p>
     <p className="text-[9px] font-bold text-slate-400 uppercase mt-1 leading-tight">{label}</p>
-  </div>
+  </motion.div>
 );
 
 export default CitizenHome;

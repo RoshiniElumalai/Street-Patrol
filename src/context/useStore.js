@@ -89,8 +89,10 @@ export const useStore = create((set, get) => {
       }
 
       try {
-        const token = await user.getIdToken();
-        const socket = io(backendUrl, {
+        const socketHost = backendUrl.startsWith('/') 
+          ? window.location.origin 
+          : backendUrl.replace(/\/api$/, '');
+        const socket = io(socketHost, {
           auth: { token },
           transports: ['websocket', 'polling']
         });
