@@ -108,8 +108,8 @@ jobs:
       - name: 📤 Commit ECE Report to Repository
         if: github.event_name == 'push'
         run: |
-          git config --local user.email "rohithnayini@users.noreply.github.com"
-          git config --local user.name "Rohith Nayini"
+          git config --local user.email "Rohithnayini09@gmail.com"
+          git config --local user.name "Rohithnayini"
           git add E2E_Functional_Test_Report.xlsx "Vulnerability Test Results/E2E_Functional_Test_Report_Latest.xlsx"
           if git diff --staged --quiet; then
             echo "No changes in report — skipping commit."
