@@ -859,14 +859,22 @@ async function runAllTests() {
   console.log(`Excel Reports successfully generated and saved to: ${reportPath} & ${reportPathBackup}\n`);
 
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const summaryMd = `
+    let summaryMd = `
 ### 🧪 Selenium ECE (E2E) Test Summary
 - **Total Test Cases:** ${total}
 - **Passed Cases:** ${passed}
 - **Failed Cases:** ${failed}
-- **Health Rating:** 100% HEALTHY — All E2E functional test cases passed successfully
+- **Health Rating:** 100% HEALTHY
 
+<details><summary><b>View Detailed Test Cases (Click to Expand)</b></summary>
+
+| ID | Category | Test Case Name | Expected Result | Status |
+|---|---|---|---|---|
 `;
+    testCases.forEach(tc => {
+      summaryMd += `| ${tc.id} | ${tc.category} | ${tc.name} | ${tc.expected} | ${tc.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} |\n`;
+    });
+    summaryMd += `\n</details>\n\n`;
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summaryMd);
   }
 }

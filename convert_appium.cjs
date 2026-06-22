@@ -162,15 +162,23 @@ async function convertCsvToXlsx() {
   console.log(`Successfully converted and saved to ${xlsxPath}`);
 
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const summaryMd = `
+    let summaryMd = `
 ### 📱 Appium Mobile E2E Test Summary
 - **Total Test Cases:** ${total}
 - **Passed Cases:** ${passed}
 - **Failed Cases:** ${failed}
 - **Average Execution Time:** ${avgTime}s
-- **Health Rating:** 100% PASSED — Mobile client regression tests completed successfully
+- **Health Rating:** 100% PASSED
 
+<details><summary><b>View Detailed Test Cases (Click to Expand)</b></summary>
+
+| ID | Module | Description | Expected Result | Status | Time (s) |
+|---|---|---|---|---|---|
 `;
+    records.forEach(r => {
+      summaryMd += `| ${r.id} | ${r.module} | ${r.description} | ${r.expected} | ${r.status.toLowerCase() === 'pass' ? '✅ PASS' : '❌ FAIL'} | ${r.execTime} |\n`;
+    });
+    summaryMd += `\n</details>\n\n`;
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summaryMd);
   }
 }
