@@ -55,9 +55,38 @@ function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Global Geolocation Watcher to keep lastKnownLocation fresh
+    let watchId;
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          useStore.setState({
+            lastKnownLocation: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            gpsActive: true
+          });
+        },
+        (err) => console.warn('Global initial GPS error:', err),
+        { enableHighAccuracy: true }
+      );
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          useStore.setState({
+            lastKnownLocation: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            gpsActive: true
+          });
+        },
+        (err) => console.warn('Global GPS watch error:', err),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+      );
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (watchId !== undefined) {
+        navigator.geolocation.clearWatch(watchId);
+      }
     };
   }, [setOfflineStatus]);
 

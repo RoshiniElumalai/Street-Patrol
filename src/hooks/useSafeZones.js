@@ -1,111 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { fetchNearbyAmenities, fetchLanduse } from '../services/overpassService';
+import { calculateLocationSafetyScore } from '../services/safetyScoreService';
 
+const REFRESH_INTERVAL_MS = 30_000; // 30 seconds
+const ALL_TYPES = ['police', 'hospital', 'clinic', 'pharmacy', 'womens_shelter'];
+
+/**
+ * Hook that fetches real nearby safety zones from Overpass API.
+ * Auto-refreshes every 30 seconds. No mock data.
+ */
 export const useSafeZones = (location, radius = 5000) => {
-  const [safeZones, setSafeZones] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [safeZones, setSafeZones]       = useState([]);
+  const [isLoading, setIsLoading]       = useState(false);
+  const [fetchError, setFetchError]     = useState(null);
+  const [safetyScore, setSafetyScore]   = useState(null); // { score, level, reasons }
+  const [landuse, setLanduse]           = useState([]);
+  const intervalRef = useRef(null);
 
+  const fetchData = useCallback(async (loc) => {
+    if (!loc?.lat || !loc?.lng) return;
+    setIsLoading(true);
+    setFetchError(null);
+
+    try {
+      // Fetch amenities and landuse in parallel
+      const [amenities, land] = await Promise.all([
+        fetchNearbyAmenities(loc.lat, loc.lng, radius, ALL_TYPES),
+        fetchLanduse(loc.lat, loc.lng, 500),
+      ]);
+
+      // Add color for map rendering
+      const colored = amenities.map(z => ({
+        ...z,
+        color:
+          z.type === 'police'                          ? '#3b82f6' :
+          z.type === 'hospital' || z.type === 'clinic' ? '#10b981' :
+          z.type === 'pharmacy'                        ? '#34d399' :
+          z.type === 'womens_shelter'                   ? '#ec4899' : '#64748b',
+      }));
+
+      setSafeZones(colored);
+      setLanduse(land);
+
+      // Calculate geospatial safety score
+      const scoreResult = calculateLocationSafetyScore(loc.lat, loc.lng, colored, land);
+      setSafetyScore(scoreResult);
+    } catch (err) {
+      console.warn('Failed to fetch nearby data:', err.message);
+      setFetchError('Could not load nearby safety locations.');
+      setSafeZones([]);
+      setSafetyScore({ score: 50, level: 'MODERATE', reasons: ['⚠ Data unavailable — using default score'] });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [radius]);
+
+  // Fetch on location change
   useEffect(() => {
-    let active = true;
-    const fetchSafeZones = async () => {
-      // Use location if available, otherwise default to Bangalore center
-      const targetLoc = location || { lat: 12.9716, lng: 77.5946 };
-      setIsLoading(true);
-      
-      try {
-        const query = `
-          [out:json];
-          (
-            node["amenity"="police"](around:${radius},${targetLoc.lat},${targetLoc.lng});
-            node["amenity"="hospital"](around:${radius},${targetLoc.lat},${targetLoc.lng});
-            node["amenity"="clinic"](around:${radius},${targetLoc.lat},${targetLoc.lng});
-            node["amenity"="pharmacy"](around:${radius},${targetLoc.lat},${targetLoc.lng});
-            node["social_facility"="womens_shelter"](around:${radius},${targetLoc.lat},${targetLoc.lng});
-          );
-          out body;
-        `;
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          body: query
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!active) return;
+    fetchData(location);
+  }, [location?.lat, location?.lng, fetchData]);
 
-        const markers = data.elements.map(el => {
-          const type = el.tags.amenity || el.tags.social_facility || 'safety_center';
-          let color = '#3b82f6'; // Police default
-          if (type === 'hospital' || type === 'clinic') color = '#10b981';
-          else if (type === 'pharmacy') color = '#34d399';
-          else if (type === 'womens_shelter') color = '#ec4899';
-          
-          return {
-            lat: el.lat,
-            lng: el.lon,
-            type: type,
-            name: el.tags.name || (type === 'police' ? 'Police Station' : type === 'womens_shelter' ? 'Women\'s Shelter' : 'Safety Hub'),
-            color: color
-          };
-        });
-        
-        setSafeZones(markers);
-      } catch (error) {
-        console.warn("Overpass API error, returning local mock safety zones:", error.message);
-        if (!active) return;
+  // Auto-refresh every 30s
+  useEffect(() => {
+    if (!location) return;
+    intervalRef.current = setInterval(() => fetchData(location), REFRESH_INTERVAL_MS);
+    return () => clearInterval(intervalRef.current);
+  }, [location?.lat, location?.lng, fetchData]);
 
-        // Fallback mock safety zones around targetLoc
-        const mockZones = [
-          {
-            lat: targetLoc.lat + 0.0035,
-            lng: targetLoc.lng + 0.0042,
-            type: 'police',
-            name: 'Central Police Station',
-            color: '#3b82f6'
-          },
-          {
-            lat: targetLoc.lat - 0.0051,
-            lng: targetLoc.lng - 0.0038,
-            type: 'police',
-            name: 'Metro Police Post',
-            color: '#3b82f6'
-          },
-          {
-            lat: targetLoc.lat + 0.0062,
-            lng: targetLoc.lng - 0.0051,
-            type: 'hospital',
-            name: 'Apollo Hospital',
-            color: '#10b981'
-          },
-          {
-            lat: targetLoc.lat - 0.0028,
-            lng: targetLoc.lng + 0.0065,
-            type: 'pharmacy',
-            name: 'Apollo Pharmacy 24/7',
-            color: '#34d399'
-          },
-          {
-            lat: targetLoc.lat + 0.0015,
-            lng: targetLoc.lng - 0.0022,
-            type: 'womens_shelter',
-            name: 'Mahila Protection Shelter',
-            color: '#ec4899'
-          }
-        ];
-        setSafeZones(mockZones);
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    };
-
-    fetchSafeZones();
-    return () => {
-      active = false;
-    };
-  }, [location, radius]);
-
-  return { safeZones, isLoading };
+  return { safeZones, isLoading, fetchError, safetyScore, landuse };
 };

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Phone, Mail, UserPlus, ShieldAlert, Trash2, CheckCircle2, Pencil, MapPin } from 'lucide-react';
+import { Users, Phone, Mail, UserPlus, ShieldAlert, Trash2, CheckCircle2, Pencil, MapPin, AlertTriangle } from 'lucide-react';
 import { useStore } from '../../context/useStore';
 
+// Normalise phone numbers for comparison (strip spaces, dashes, country codes)
+const normalisePhone = (p) => p?.replace(/[\s\-().+]/g, '').replace(/^(91|0)/, '') || '';
+
 const Contacts = () => {
-  const { contacts, addContact, deleteContact, updateContact, triggerEmergency, sendEmergencyAlert } = useStore();
+  const { contacts, addContact, deleteContact, updateContact, triggerEmergency, sendEmergencyAlert, currentUser } = useStore();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '', relation: '' });
@@ -16,6 +19,24 @@ const Contacts = () => {
       setError('Name and Phone are required.');
       return;
     }
+
+    // ─── Prevent saving own phone as emergency contact ──────────────────────
+    const ownPhone = normalisePhone(currentUser?.phone);
+    const contactPhone = normalisePhone(form.phone);
+    if (ownPhone && contactPhone && ownPhone === contactPhone) {
+      setError('This is your registered number. Emergency contacts must be a different person.');
+      return;
+    }
+
+    // ─── Prevent duplicate contacts ──────────────────────────────────────────
+    const duplicate = contacts.find(
+      c => c.id !== editingId && normalisePhone(c.phone) === contactPhone
+    );
+    if (duplicate) {
+      setError(`This number is already saved as "${duplicate.name}".`);
+      return;
+    }
+
     try {
       if (editingId) {
         await updateContact(editingId, form);

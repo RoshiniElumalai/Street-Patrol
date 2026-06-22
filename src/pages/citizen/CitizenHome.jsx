@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, ShieldAlert, ShieldCheck, Navigation, PhoneCall, AlertTriangle,
   Battery, Wifi, Activity, MapPin, Users, Eye, Settings, Mic, MicOff,
-  Bell, Clock, BellOff, X, Phone
+  Bell, Clock, Info, X, Phone, UserPlus
 } from 'lucide-react';
 import LiveMap from '../../components/map/LiveMap';
 import { useStore } from '../../context/useStore';
@@ -21,7 +21,10 @@ const CitizenHome = () => {
   const [isProtectionActive, setIsProtectionActive] = useState(false);
   const [showFakeCall, setShowFakeCall] = useState(false);
   const [showSafeZonesModal, setShowSafeZonesModal] = useState(false);
+  const [safeZoneFilter, setSafeZoneFilter] = useState('all');
   const [battery, setBattery] = useState(null);
+
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
 
   const {
     currentUser,
@@ -35,18 +38,36 @@ const CitizenHome = () => {
     audioLevel,
     isSocketConnected,
     gpsActive,
-    smsDeliveryStatus,
     isEmergencyMode,
-    emergencyData,
     lastKnownLocation,
     contacts,
     alertHistory,
+    noContactsWarning,
+    clearNoContactsWarning,
   } = useStore();
 
-  const { isListening, setIsListening, micPermission, analyserNode } = useHardwareTriggers();
-  const { safeZones } = useSafeZones(lastKnownLocation, 3000);
+  const [localLocation, setLocalLocation] = useState(null);
+
+  useEffect(() => {
+    if (!lastKnownLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setLocalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (err) => console.warn('Could not get initial location', err),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, [lastKnownLocation]);
+
+  const activeLocation = lastKnownLocation || localLocation;
+
+  const { isListening, setIsListening, micPermission, analyserNode, currentThreshold, baselineDb } = useHardwareTriggers();
+  const { safeZones, safetyScore: geoScore } = useSafeZones(activeLocation, 5000);
   const policeCount = safeZones.filter(z => z.type === 'police').length;
-  const safetyScore = Math.round((1 - riskScore) * 100);
+  const hospitalCount = safeZones.filter(z => z.type === 'hospital' || z.type === 'clinic').length;
+  const pharmacyCount = safeZones.filter(z => z.type === 'pharmacy').length;
+  const safetyScore = geoScore?.score ?? 50;
+  const safetyLevel = geoScore?.level ?? 'MODERATE';
+  const safetyReasons = geoScore?.reasons ?? [];
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -101,6 +122,33 @@ const CitizenHome = () => {
     { icon: Eye,        label: 'Vault',     sub: 'Evidence', color: 'bg-indigo-500', path: '/citizen/vault' },
     { icon: Settings,   label: 'Settings',  sub: 'Configure', color: 'bg-slate-600', path: '/citizen/settings' },
   ];
+
+  const displayedSafeZones = safeZones.filter(z => {
+    if (safeZoneFilter === 'all') return true;
+    if (safeZoneFilter === 'police') return z.type === 'police';
+    if (safeZoneFilter === 'hospital') return z.type === 'hospital' || z.type === 'clinic';
+    if (safeZoneFilter === 'pharmacy') return z.type === 'pharmacy';
+    return true;
+  });
+
+  let modalTitle = "Nearby Safety Hubs";
+  let modalSubtitle = `${displayedSafeZones.length} SECURE ZONES IDENTIFIED`;
+  let ModalIcon = Shield;
+  let modalIconColor = "text-blue-500";
+
+  if (safeZoneFilter === 'police') {
+    modalTitle = "Nearby Police Stations";
+    ModalIcon = Shield;
+    modalIconColor = "text-blue-500";
+  } else if (safeZoneFilter === 'hospital') {
+    modalTitle = "Nearby Hospitals & Clinics";
+    ModalIcon = Activity;
+    modalIconColor = "text-emerald-500";
+  } else if (safeZoneFilter === 'pharmacy') {
+    modalTitle = "Nearby Pharmacies";
+    ModalIcon = ShieldCheck;
+    modalIconColor = "text-teal-500";
+  }
 
   return (
     <div className="bg-slate-50 pb-4 min-h-full">
@@ -161,6 +209,44 @@ const CitizenHome = () => {
           <p className="text-white text-sm font-semibold leading-snug">{aiMessage}</p>
         </div>
 
+        {/* ─── Live dB Meter (shown when ARM is active) ─── */}
+        {isProtectionActive && (
+          <div className="mt-3 bg-black/30 rounded-2xl p-3 border border-white/10">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-white/70 text-[10px] font-black uppercase tracking-wider">Live dB Level</span>
+              <span className={`text-xs font-black tabular-nums ${
+                audioLevel > (currentThreshold ?? -5) ? 'text-red-400 animate-pulse' : 'text-emerald-400'
+              }`}>{Math.round(audioLevel)} dB</span>
+            </div>
+            {/* Bar track */}
+            <div className="relative h-3 bg-white/10 rounded-full overflow-hidden">
+              {/* Filled level — map -100..0 to 0..100% */}
+              <div
+                className={`h-full rounded-full transition-all duration-100 ${
+                  audioLevel > (currentThreshold ?? -5) ? 'bg-red-500' : 'bg-emerald-400'
+                }`}
+                style={{ width: `${Math.max(0, Math.min(100, (audioLevel + 100)))}%` }}
+              />
+              {/* Threshold marker line */}
+              <div
+                className="absolute top-0 bottom-0 w-0.5 bg-yellow-400"
+                style={{ left: `${Math.max(0, Math.min(100, ((currentThreshold ?? -5) + 100)))}%` }}
+                title={`Emergency threshold: ${currentThreshold} dB`}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-white/40 text-[9px]">-100 dB (silence)</span>
+              <span className="text-yellow-400 text-[9px] font-bold">
+                ⚡ Alert at {currentThreshold ?? -5} dB
+              </span>
+              <span className="text-white/40 text-[9px]">0 dB (max)</span>
+            </div>
+            <p className="text-white/40 text-[9px] mt-1 text-center">
+              Only saying <strong className="text-white/60">"help me"  /  "save me"</strong> triggers SOS
+            </p>
+          </div>
+        )}
+
         {/* Waveform Visualizer */}
         {isProtectionActive && (
           <WaveformVisualizer analyserNode={analyserNode} isActive={isListening} />
@@ -182,11 +268,88 @@ const CitizenHome = () => {
 
         {/* ─── SCORE CARDS ─── */}
         <div className="grid grid-cols-3 gap-3">
-          <ScoreCard value={safetyScore} label="Safety Score"
-            color={safetyScore > 80 ? 'text-emerald-500' : safetyScore > 50 ? 'text-amber-500' : 'text-red-500'} />
-          <ScoreCard value={policeCount > 0 ? policeCount : '?'} label="Police Nearby" color="text-blue-500" onClick={() => setShowSafeZonesModal(true)} />
-          <ScoreCard value={contacts.length} label="Guardians" color="text-purple-500" />
+          <ScoreCard value={safetyScore} label={safetyLevel?.replace('_', ' ') || 'Safety'}
+            color={safetyScore >= 90 ? 'text-emerald-500' : safetyScore >= 70 ? 'text-blue-500' : safetyScore >= 50 ? 'text-amber-500' : 'text-red-500'}
+            onClick={() => setShowScoreInfo(true)} />
+          <ScoreCard value={policeCount > 0 ? policeCount : '—'} label="Police Nearby" color="text-blue-500" onClick={() => { setSafeZoneFilter('police'); setShowSafeZonesModal(true); }} />
+          <ScoreCard value={contacts.length} label="Guardians" color="text-purple-500" onClick={() => navigate('/citizen/contacts')} />
         </div>
+
+        {/* ─── Additional stat row ─── */}
+        <div className="grid grid-cols-2 gap-3">
+          <div 
+            className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+            onClick={() => { setSafeZoneFilter('hospital'); setShowSafeZonesModal(true); }}
+          >
+            <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg">🏥</div>
+            <div><p className="text-slate-800 font-bold text-sm">{hospitalCount}</p><p className="text-[9px] text-slate-400 font-bold uppercase">Hospitals</p></div>
+          </div>
+          <div 
+            className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors"
+            onClick={() => { setSafeZoneFilter('pharmacy'); setShowSafeZonesModal(true); }}
+          >
+            <div className="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center text-lg">💊</div>
+            <div><p className="text-slate-800 font-bold text-sm">{pharmacyCount}</p><p className="text-[9px] text-slate-400 font-bold uppercase">Pharmacies</p></div>
+          </div>
+        </div>
+
+        {/* ─── SAFETY REASONS (from geospatial score) ─── */}
+        {safetyReasons.length > 0 && (
+          <div className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Safety Analysis</p>
+            <div className="space-y-1.5">
+              {safetyReasons.map((r, i) => (
+                <p key={i} className={`text-xs font-bold ${
+                  r.startsWith('✓') ? 'text-emerald-600' : 'text-amber-600'
+                }`}>{r}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── SAFETY SCORE INFO (collapsible formula) ─── */}
+        <AnimatePresence>
+          {showScoreInfo && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="bg-slate-800 rounded-2xl p-4 border border-slate-700 overflow-hidden">
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-white font-black text-sm flex items-center gap-2"><Info size={14} className="text-blue-400" /> How Safety Score Works</p>
+                <button onClick={() => setShowScoreInfo(false)} className="text-slate-400 hover:text-white"><X size={14} /></button>
+              </div>
+              <div className="space-y-2 text-xs">
+                <p className="text-slate-400 font-bold mb-1">📈 Positive Factors</p>
+                {[
+                  { label: 'Police within 500m/1km/2km', weight: '+15/+10/+5', color: 'bg-blue-500' },
+                  { label: 'Hospital within 500m/1km/2km', weight: '+10/+7/+3', color: 'bg-green-500' },
+                  { label: 'Pharmacy within 500m',        weight: '+5',         color: 'bg-emerald-500' },
+                  { label: 'Commercial / Residential',    weight: '+10',        color: 'bg-cyan-500' },
+                ].map(row => (
+                  <div key={row.label} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${row.color}`} />
+                    <span className="text-slate-300 flex-1">{row.label}</span>
+                    <span className="text-emerald-400 font-black">{row.weight}</span>
+                  </div>
+                ))}
+                <p className="text-slate-400 font-bold mt-2 mb-1">📉 Negative Factors</p>
+                {[
+                  { label: 'Industrial area',     weight: '-10', color: 'bg-orange-500' },
+                  { label: 'Isolated area',        weight: '-20', color: 'bg-red-400' },
+                  { label: 'Forest / empty land',  weight: '-25', color: 'bg-red-500' },
+                  { label: 'Night time (after 10PM)', weight: '-10', color: 'bg-purple-500' },
+                ].map(row => (
+                  <div key={row.label} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${row.color}`} />
+                    <span className="text-slate-300 flex-1">{row.label}</span>
+                    <span className="text-red-400 font-black">{row.weight}</span>
+                  </div>
+                ))}
+                <div className="border-t border-slate-600 pt-2 mt-2 text-slate-300 text-[10px]">
+                  Starts at 100. Bonuses/penalties applied from real OSM + GPS data.
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ─── BIG SOS BUTTON ─── */}
         <motion.button
@@ -337,11 +500,11 @@ const CitizenHome = () => {
               <div className="px-6 pb-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <Shield className="text-blue-500" size={20} />
-                    Nearby Safety Hubs
+                    <ModalIcon className={modalIconColor} size={20} />
+                    {modalTitle}
                   </h2>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-                    {safeZones.length} Secure Zones Identified
+                    {modalSubtitle}
                   </p>
                 </div>
                 <button 
@@ -353,13 +516,13 @@ const CitizenHome = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                {safeZones.length === 0 ? (
+                {displayedSafeZones.length === 0 ? (
                   <div className="text-center py-8 text-slate-400 font-bold text-sm">
                     <MapPin className="mx-auto mb-2 opacity-50" size={32} />
-                    <p>No safety zones found nearby</p>
+                    <p>No {safeZoneFilter !== 'all' ? safeZoneFilter : 'safety'} zones found nearby</p>
                   </div>
                 ) : (
-                  safeZones.map((zone, idx) => {
+                  displayedSafeZones.map((zone, idx) => {
                     const isPolice = zone.type === 'police';
                     const isHospital = zone.type === 'hospital' || zone.type === 'clinic';
                     const isPharmacy = zone.type === 'pharmacy';
@@ -440,6 +603,42 @@ const CitizenHome = () => {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-normal">
                   In extreme danger, tap the crimson SOS button directly.
                 </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── NO CONTACTS WARNING MODAL ─── */}
+      <AnimatePresence>
+        {noContactsWarning && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-5"
+            onClick={clearNoContactsWarning}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-amber-100"
+            >
+              <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={28} className="text-amber-500" />
+              </div>
+              <h2 className="text-xl font-black text-slate-800 text-center mb-2">No Emergency Contacts</h2>
+              <p className="text-slate-500 text-sm text-center mb-5">
+                SOS was triggered, but you have <strong>no emergency contacts</strong> saved.
+                Add at least one contact so alerts can be dispatched.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={clearNoContactsWarning}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl text-sm">
+                  Dismiss
+                </button>
+                <button onClick={() => { clearNoContactsWarning(); navigate('/citizen/contacts'); }}
+                  className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg">
+                  <UserPlus size={16} /> Add Contact
+                </button>
               </div>
             </motion.div>
           </motion.div>
